@@ -359,8 +359,7 @@ def login():
     if request.method == "POST":
         username = request.form['username']
         password = request.form['password']
-        if request.form.get('remember'): remember = True
-        else: remember = False
+        remember = bool(request.form.get('remember'))
 
         if not (username and password):
             flash("Username and password cannot be empty.")
