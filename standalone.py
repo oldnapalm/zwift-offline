@@ -646,8 +646,6 @@ if os.path.exists(DISCORD_TOKEN_FILE):
     with open(DISCORD_TOKEN_FILE, 'r') as f:
         DISCORD_TOKEN = f.read().rstrip('\r\n')
 
-channel_id = 791300308478591006
-
 class DiscordBot(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -656,8 +654,7 @@ class DiscordBot(discord.Client):
         self.online = len(online)
 
     async def on_ready(self):
-        channel = self.get_channel(channel_id)
-        await channel.send('Server online')
+        self.channel = self.get_channel(791300308478591006)
 
     async def on_member_join(self, member):
         await member.create_dm()
@@ -673,11 +670,10 @@ class DiscordBot(discord.Client):
 
     async def riders_online(self):
         await self.wait_until_ready()
-        channel = self.get_channel(channel_id)
         while not self.is_closed():
             if self.online != len(online):
                 self.online = len(online)
-                await channel.send('%s riders online' % self.online)
+                await self.channel.send('%s riders online' % self.online)
             await asyncio.sleep(60)
 
 class Threader(threading.Thread):
@@ -691,8 +687,10 @@ class Threader(threading.Thread):
         await self.discord_bot.start(DISCORD_TOKEN)
 
     def run(self):
-        self.loop.create_task(self.starter())
-        self.loop.run_forever()
+        try:
+            self.loop.run_until_complete(self.starter())
+        except BaseException:
+            time.sleep(5)
 
 discord_thread = Threader()
 
