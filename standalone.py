@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from gevent import monkey
-monkey.patch_all()
 import os
 import signal
 import struct
@@ -639,5 +637,63 @@ load_bots()
 botthreadevent = threading.Event()
 bot = threading.Thread(target=play_bots)
 bot.start()
+
+import discord
+import asyncio
+
+DISCORD_TOKEN_FILE = "%s/discord_token.txt" % STORAGE_DIR
+if os.path.exists(DISCORD_TOKEN_FILE):
+    with open(DISCORD_TOKEN_FILE, 'r') as f:
+        DISCORD_TOKEN = f.read().rstrip('\r\n')
+
+channel_id = 791300308478591006
+
+class DiscordBot(discord.Client):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.bg_task = self.loop.create_task(self.riders_online())
+        self.online = len(online)
+
+    async def on_ready(self):
+        channel = self.get_channel(channel_id)
+        await channel.send('Server online')
+
+    async def on_member_join(self, member):
+        await member.create_dm()
+        await member.dm_channel.send('Welcome %s!' % member.name)
+
+    async def on_message(self, message):
+        if message.author.id == self.user.id:
+            return
+
+        if message.content == '?online':
+            self.online = len(online)
+            await message.channel.send('%s riders online' % self.online)
+
+    async def riders_online(self):
+        await self.wait_until_ready()
+        channel = self.get_channel(channel_id)
+        while not self.is_closed():
+            if self.online != len(online):
+                self.online = len(online)
+                await channel.send('%s riders online' % self.online)
+            await asyncio.sleep(60)
+
+class Threader(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.loop = asyncio.get_event_loop()
+        self.start()
+
+    async def starter(self):
+        self.discord_bot = DiscordBot()
+        await self.discord_bot.start(DISCORD_TOKEN)
+
+    def run(self):
+        self.loop.create_task(self.starter())
+        self.loop.run_forever()
+
+discord_thread = Threader()
 
 zwift_offline.run_standalone(online, global_pace_partners, global_bots, ghosts_enabled, save_ghost, player_update_queue)
