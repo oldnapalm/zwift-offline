@@ -655,10 +655,11 @@ class DiscordBot(discord.Client):
 
     async def on_ready(self):
         self.channel = self.get_channel(791300308478591006)
+        self.general = self.get_channel(771069316262527039)
+        self.instructions = self.get_channel(771670027980111887)
 
     async def on_member_join(self, member):
-        await member.create_dm()
-        await member.dm_channel.send('Welcome %s!' % member.name)
+        await self.general.send('Welcome %s! Please have a look in %s on how to configure your Zwift client.' % (member.mention, self.instructions.mention))
 
     async def on_message(self, message):
         if message.author.id == self.user.id:
@@ -667,6 +668,10 @@ class DiscordBot(discord.Client):
         if message.content == '?online':
             self.online = len(online)
             await message.channel.send('%s riders online' % self.online)
+        elif message.content == '?help':
+            await message.channel.send('Please have a look in %s and let us know if something is unclear.' % self.instructions.mention)
+        elif not message.author.bot:
+            zwift_offline.send_message_to_all_online(message.content, message.author.name)
 
     async def riders_online(self):
         await self.wait_until_ready()

@@ -448,7 +448,7 @@ def user_home(username):
     return render_template("user_home.html", username=current_user.username, enable_ghosts=bool(current_user.enable_ghosts),
         online=get_online(), is_admin=current_user.is_admin, restarting=restarting, restarting_in_minutes=restarting_in_minutes)
 
-def send_message_to_all_online(message):
+def send_message_to_all_online(message, sender='Server'):
     player_update = udp_node_msgs_pb2.PlayerUpdate()
     player_update.f2 = 1
     player_update.type = 5 #chat message type
@@ -461,7 +461,7 @@ def send_message_to_all_online(message):
     chat_message.rider_id = 0
     chat_message.to_rider_id = 0
     chat_message.f3 = 1
-    chat_message.firstName = 'Server'
+    chat_message.firstName = sender
     chat_message.lastName = ''
     chat_message.message = message
     chat_message.countryCode = 0
@@ -1193,6 +1193,22 @@ def add_player_to_world(player, course_world, is_pace_partner):
             course_world[course_id].f5 += 1
 
 
+import requests
+import json
+
+DISCORD_WEBHOOK_FILE = "%s/discord_webhook.txt" % STORAGE_DIR
+if os.path.exists(DISCORD_WEBHOOK_FILE):
+    with open(DISCORD_WEBHOOK_FILE, 'r') as f:
+        DISCORD_WEBHOOK = f.read().rstrip('\r\n')
+
+def send_message_to_discord(message, sender_id):
+    profile = get_partial_profile(sender_id)
+    data = {}
+    data["content"] = message
+    data["username"] = profile.first_name + ' ' + profile.last_name
+    requests.post(DISCORD_WEBHOOK, data=json.dumps(data), headers={"Content-Type": "application/json"})
+
+
 def relay_worlds_generic(world_id=None):
     courses = courses_lookup.keys()
     # Android client also requests a JSON version
@@ -1234,6 +1250,7 @@ def relay_worlds_generic(world_id=None):
                         chat_message = udp_node_msgs_pb2.ChatMessage()
                         chat_message.ParseFromString(player_update.payload)
                         sending_player_id = chat_message.rider_id
+                        send_message_to_discord(chat_message.message, sending_player_id)
                         if sending_player_id in online:
                             sending_player = online[sending_player_id]
                             #Check that players are on same course and close to each other
