@@ -487,6 +487,7 @@ def send_restarting_message():
             send_message_to_all_online(message)
             send_message_to_discord(message)
             time.sleep(6)
+            os.system("git pull")
             os.system("systemctl restart zo-mp")
 #            os.kill(os.getpid(), signal.SIGINT)
 
