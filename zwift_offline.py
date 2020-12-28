@@ -1047,6 +1047,10 @@ def api_profiles_activities_rideon(recieving_player_id):
         if not recieving_player_id in player_update_queue:
             player_update_queue[recieving_player_id] = list()
         player_update_queue[recieving_player_id].append(player_update.SerializeToString())
+
+        receiver = get_partial_profile(recieving_player_id)
+        message = 'Ride on ' + receiver.first_name + ' ' + receiver.last_name + '!'
+        send_message_to_discord(message, sending_player_id)
     return '{}', 200
 
 
