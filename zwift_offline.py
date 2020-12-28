@@ -477,13 +477,18 @@ def send_restarting_message():
     global restarting
     global restarting_in_minutes
     while restarting:
-        send_message_to_all_online('Restarting / Shutting down in %s minutes. Save your progress or continue riding until server is back online' % restarting_in_minutes)
+        message = 'Restarting / Shutting down in %s minutes. Save your progress or continue riding until server is back online' % restarting_in_minutes
+        send_message_to_all_online(message)
+        send_message_to_discord(message)
         time.sleep(60)
         restarting_in_minutes -= 1
         if restarting and restarting_in_minutes == 0:
-            send_message_to_all_online('See you later! Look for the back online message.')
+            message = 'See you later! Look for the back online message.'
+            send_message_to_all_online(message)
+            send_message_to_discord(message)
             time.sleep(6)
-            os.kill(os.getpid(), signal.SIGINT)
+            os.system("systemctl restart zo-mp")
+#            os.kill(os.getpid(), signal.SIGINT)
 
 @app.route("/restart")
 @login_required
@@ -505,7 +510,9 @@ def cancel_restart_server():
     if bool(current_user.is_admin):
         restarting = False
         restarting_in_minutes = 0
-        send_message_to_all_online('Restart of the server has been cancelled. Ride on!')
+        message = 'Restart of the server has been cancelled. Ride on!'
+        send_message_to_all_online(message)
+        send_message_to_discord(message)
     return redirect('/user/%s/' % current_user.username)
 
 @app.route("/reloadbots")
@@ -1201,11 +1208,14 @@ if os.path.exists(DISCORD_WEBHOOK_FILE):
     with open(DISCORD_WEBHOOK_FILE, 'r') as f:
         DISCORD_WEBHOOK = f.read().rstrip('\r\n')
 
-def send_message_to_discord(message, sender_id):
-    profile = get_partial_profile(sender_id)
+def send_message_to_discord(message, sender_id=None):
+    if sender_id is not None:
+        profile = get_partial_profile(sender_id)
+        sender = profile.first_name + ' ' + profile.last_name
+    else: sender = 'Server'
     data = {}
     data["content"] = message
-    data["username"] = profile.first_name + ' ' + profile.last_name
+    data["username"] = sender
     requests.post(DISCORD_WEBHOOK, data=json.dumps(data), headers={"Content-Type": "application/json"})
 
 
@@ -1556,7 +1566,9 @@ def check_columns():
 
 def send_server_back_online_message():
     time.sleep(30)
-    send_message_to_all_online("We're back online. Ride on!")
+    message = "We're back online. Ride on!"
+    send_message_to_all_online(message)
+    send_message_to_discord(message)
 
 
 @app.before_first_request
