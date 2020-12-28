@@ -670,7 +670,7 @@ class DiscordBot(discord.Client):
             await message.channel.send('%s riders online' % self.online)
         elif message.content == '?help':
             await message.channel.send('Please have a look in %s and let us know if something is unclear.' % self.instructions.mention)
-        elif not message.author.bot:
+        elif message.channel == self.channel and not message.author.bot:
             zwift_offline.send_message_to_all_online(message.content, message.author.name)
 
     async def riders_online(self):
