@@ -1265,7 +1265,6 @@ def relay_worlds_generic(world_id=None):
                         chat_message = udp_node_msgs_pb2.ChatMessage()
                         chat_message.ParseFromString(player_update.payload)
                         sending_player_id = chat_message.rider_id
-                        send_message_to_discord(chat_message.message, sending_player_id)
                         if sending_player_id in online:
                             sending_player = online[sending_player_id]
                             #Check that players are on same course and close to each other
@@ -1288,6 +1287,10 @@ def relay_worlds_generic(world_id=None):
                     if not recieving_player_id in player_update_queue:
                         player_update_queue[recieving_player_id] = list()
                     player_update_queue[recieving_player_id].append(player_update.SerializeToString())
+            if player_update.type == 5:
+                chat_message = udp_node_msgs_pb2.ChatMessage()
+                chat_message.ParseFromString(player_update.payload)
+                send_message_to_discord(chat_message.message, chat_message.rider_id)
             return '{}', 200
     else:  # protobuf request
         worlds = world_pb2.Worlds()
