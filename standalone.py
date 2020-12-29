@@ -645,6 +645,9 @@ bot.start()
 import discord
 import asyncio
 
+intents = discord.Intents.default()
+intents.members = True
+
 DISCORD_TOKEN_FILE = "%s/discord_token.txt" % STORAGE_DIR
 if os.path.exists(DISCORD_TOKEN_FILE):
     with open(DISCORD_TOKEN_FILE, 'r') as f:
@@ -676,7 +679,7 @@ class Threader(threading.Thread):
         self.start()
 
     async def starter(self):
-        self.discord_bot = DiscordBot()
+        self.discord_bot = DiscordBot(intents=intents)
         await self.discord_bot.start(DISCORD_TOKEN)
 
     def run(self):
