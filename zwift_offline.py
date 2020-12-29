@@ -487,7 +487,6 @@ def send_restarting_message():
             send_message_to_all_online(message)
             send_message_to_discord(message)
             time.sleep(6)
-            os.system("git pull")
             os.system("systemctl restart zo-mp")
 #            os.kill(os.getpid(), signal.SIGINT)
 
@@ -497,6 +496,7 @@ def restart_server():
     global restarting
     global restarting_in_minutes
     if bool(current_user.is_admin):
+        os.system("git pull")
         restarting = True
         restarting_in_minutes = 10
         send_restarting_message_thread = threading.Thread(target=send_restarting_message)
@@ -689,6 +689,7 @@ def logout(player_id):
         online.pop(player_id)
     if player_id in player_partial_profiles:
         player_partial_profiles.pop(player_id)
+    send_message_to_discord('%s riders online' % len(online))
 
 
 @app.route('/api/users/logout', methods=['POST'])

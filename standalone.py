@@ -517,6 +517,9 @@ class UDPHandler(socketserver.BaseRequestHandler):
         for p_id in remove_players:
             online.pop(p_id)
         if state.roadTime:
+            if not player_id in online.keys():
+                riders_online = len(online) + 1
+                zwift_offline.send_message_to_discord('%s riders online' % riders_online)
             online[player_id] = state
 
         #Remove ghosts entries for inactive players (disconnected?)
@@ -647,12 +650,6 @@ if os.path.exists(DISCORD_TOKEN_FILE):
         DISCORD_TOKEN = f.read().rstrip('\r\n')
 
 class DiscordBot(discord.Client):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.bg_task = self.loop.create_task(self.riders_online())
-        self.online = len(online)
-
     async def on_ready(self):
         self.channel = self.get_channel(791300308478591006)
         self.general = self.get_channel(771069316262527039)
@@ -664,22 +661,12 @@ class DiscordBot(discord.Client):
     async def on_message(self, message):
         if message.author.id == self.user.id:
             return
-
         if message.content == '?online':
-            self.online = len(online)
-            await message.channel.send('%s riders online' % self.online)
+            await message.channel.send('%s riders online' % len(online))
         elif message.content == '?help':
             await message.channel.send('Please have a look in %s and let us know if something is unclear.' % self.instructions.mention)
         elif message.channel == self.channel and not message.author.bot:
             zwift_offline.send_message_to_all_online(message.content, message.author.name)
-
-    async def riders_online(self):
-        await self.wait_until_ready()
-        while not self.is_closed():
-            if self.online != len(online):
-                self.online = len(online)
-                await self.channel.send('%s riders online' % self.online)
-            await asyncio.sleep(60)
 
 class Threader(threading.Thread):
     def __init__(self):
