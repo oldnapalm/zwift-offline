@@ -517,10 +517,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
         for p_id in remove_players:
             online.pop(p_id)
         if state.roadTime:
-            if not player_id in online.keys():
-                riders_online = len(online) + 1
-                zwift_offline.send_message_to_discord('%s riders online' % riders_online)
-            online[player_id] = state
+            if player_id in online.keys():
+                online[player_id] = state
+            else:
+                online[player_id] = state
+                zwift_offline.send_message_to_discord('%s riders online' % len(online))
 
         #Remove ghosts entries for inactive players (disconnected?)
         keys = global_ghosts.keys()
