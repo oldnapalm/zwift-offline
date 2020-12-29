@@ -477,9 +477,7 @@ def send_restarting_message():
     global restarting
     global restarting_in_minutes
     while restarting:
-        message = 'Restarting / Shutting down in %s minutes. Save your progress or continue riding until server is back online' % restarting_in_minutes
-        send_message_to_all_online(message)
-        send_message_to_discord(message)
+        send_message_to_all_online('Restarting / Shutting down in %s minutes. Save your progress or continue riding until server is back online' % restarting_in_minutes)
         time.sleep(60)
         restarting_in_minutes -= 1
         if restarting and restarting_in_minutes == 0:
@@ -496,11 +494,12 @@ def restart_server():
     global restarting
     global restarting_in_minutes
     if bool(current_user.is_admin):
-        os.system("git pull")
         restarting = True
         restarting_in_minutes = 10
         send_restarting_message_thread = threading.Thread(target=send_restarting_message)
         send_restarting_message_thread.start()
+        send_message_to_discord('Restarting / Shutting down in %s minutes. Save your progress or continue riding until server is back online' % restarting_in_minutes)
+        os.system("git pull")
     return redirect('/user/%s/' % current_user.username)
 
 @app.route("/cancelrestart")
