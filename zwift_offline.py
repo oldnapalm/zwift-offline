@@ -142,6 +142,7 @@ save_ghost = None
 restarting = False
 restarting_in_minutes = 0
 reload_pacer_bots = False
+discord_webhook = None
 
 class User(UserMixin, db.Model):
     player_id = db.Column(db.Integer, primary_key=True)
@@ -1222,12 +1223,8 @@ def add_player_to_world(player, course_world, is_pace_partner):
 import requests
 import json
 
-DISCORD_WEBHOOK_FILE = "%s/discord_webhook.txt" % STORAGE_DIR
-if os.path.exists(DISCORD_WEBHOOK_FILE):
-    with open(DISCORD_WEBHOOK_FILE, 'r') as f:
-        DISCORD_WEBHOOK = f.read().rstrip('\r\n')
-
 def send_message_to_discord(message, sender_id=None):
+    if not discord_webhook: return
     if sender_id is not None:
         profile = get_partial_profile(sender_id)
         sender = profile.first_name + ' ' + profile.last_name
@@ -1235,7 +1232,7 @@ def send_message_to_discord(message, sender_id=None):
     data = {}
     data["content"] = message
     data["username"] = sender
-    requests.post(DISCORD_WEBHOOK, data=json.dumps(data), headers={"Content-Type": "application/json"})
+    requests.post(discord_webhook, data=json.dumps(data), headers={"Content-Type": "application/json"})
 
 
 def relay_worlds_generic(world_id=None):
@@ -1731,13 +1728,14 @@ def auth_realms_zwift_tokens_access_codes():
         return FAKE_JWT, 200
 
 
-def run_standalone(passed_online, passed_global_pace_partners, passed_global_bots, passed_ghosts_enabled, passed_save_ghost, passed_player_update_queue):
+def run_standalone(passed_online, passed_global_pace_partners, passed_global_bots, passed_ghosts_enabled, passed_save_ghost, passed_player_update_queue, passed_discord_webhook):
     global online
     global global_pace_partners
     global global_bots
     global ghosts_enabled
     global save_ghost
     global player_update_queue
+    global discord_webhook
     global login_manager
     online = passed_online
     global_pace_partners = passed_global_pace_partners
@@ -1745,6 +1743,7 @@ def run_standalone(passed_online, passed_global_pace_partners, passed_global_bot
     ghosts_enabled = passed_ghosts_enabled
     save_ghost = passed_save_ghost
     player_update_queue = passed_player_update_queue
+    discord_webhook = passed_discord_webhook
     login_manager = LoginManager()
     login_manager.login_view = 'login'
     login_manager.session_protection = None
