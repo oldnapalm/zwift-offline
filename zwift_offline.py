@@ -1598,8 +1598,6 @@ def before_first_request():
     db.session.commit()  # in case create_all created a table
     check_columns()
     db.session.close()
-    send_message_thread = threading.Thread(target=send_server_back_online_message)
-    send_message_thread.start()
 
 
 ####################
@@ -1755,6 +1753,9 @@ def run_standalone(passed_online, passed_global_pace_partners, passed_global_bot
     def load_user(uid):
         return User.query.get(int(uid))
 
+    send_message_thread = threading.Thread(target=send_server_back_online_message)
+    send_message_thread.start()
+    logger.info("Server is running.")
     server = WSGIServer(('0.0.0.0', 443), app, certfile='%s/cert-zwift-com.pem' % SSL_DIR, keyfile='%s/key-zwift-com.pem' % SSL_DIR, log=logger)
     server.serve_forever()
 
