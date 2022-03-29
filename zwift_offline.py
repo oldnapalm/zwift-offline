@@ -16,7 +16,7 @@ import re
 import smtplib, ssl
 import requests
 import json
-from copy import copy
+from copy import copy, deepcopy
 from functools import wraps
 from io import BytesIO
 from shutil import copyfile
@@ -206,10 +206,23 @@ class AnonUser(User, AnonymousUserMixin, db.Model):
         return True
 
 class PartialProfile:
+    player_id = 0
     first_name = ''
     last_name = ''
     country_code = 0
     route = 0
+    player_type = 'NORMAL'
+    male = True
+    imageSrc = ''
+    def to_json(self):
+        return {"countryCode": self.country_code,
+                "enrolledZwiftAcademy": False, #don't need
+                "firstName": self.first_name,
+                "id": self.player_id,
+                "imageSrc": self.imageSrc,
+                "lastName": self.last_name,
+                "male": self.male,
+                "playerType": self.player_type }
 
 class Online:
     total = 0
@@ -311,9 +324,13 @@ def get_partial_profile(player_id):
                     profile = profile_pb2.PlayerProfile()
                     profile.ParseFromString(fd.read())
                     partial_profile = PartialProfile()
+                    partial_profile.player_id = player_id
+                    partial_profile.imageSrc = "https://us-or-rly101.zwift.com/download/%s/avatarLarge.jpg" % player_id
                     partial_profile.first_name = profile.first_name
                     partial_profile.last_name = profile.last_name
                     partial_profile.country_code = profile.country_code
+                    partial_profile.player_type = profile_pb2.PlayerType.Name(jsf(profile, 'player_type', 1))
+                    partial_profile.male = profile.is_male
                     for f in profile.public_attributes:
                         #0x69520F20=1766985504 - crc32 of "PACE PARTNER - ROUTE"
                         #TODO: -1021012238: figure out
@@ -651,6 +668,11 @@ def user_home(username):
     return render_template("user_home.html", username=current_user.username, enable_ghosts=bool(current_user.enable_ghosts),
         online=get_online(), is_admin=current_user.is_admin, restarting=restarting, restarting_in_minutes=restarting_in_minutes, server_ip=os.path.exists(SERVER_IP_FILE))
 
+def enqueue_player_update(player_id, wa_bytes):
+    if not player_id in player_update_queue:
+        player_update_queue[player_id] = list()
+    player_update_queue[player_id].append(wa_bytes)
+
 def send_message_to_all_online(message, sender='Server'):
     player_update = udp_node_msgs_pb2.WorldAttribute()
     player_update.server_realm = udp_node_msgs_pb2.ZofflineConstants.RealmID
@@ -670,11 +692,9 @@ def send_message_to_all_online(message, sender='Server'):
     chat_message.countryCode = 0
 
     player_update.payload = chat_message.SerializeToString()
-
-    for recieving_player_id in online.keys():
-        if not recieving_player_id in player_update_queue:
-            player_update_queue[recieving_player_id] = list()
-        player_update_queue[recieving_player_id].append(player_update.SerializeToString())
+    player_update_s = player_update.SerializeToString()
+    for receiving_player_id in online.keys():
+        enqueue_player_update(receiving_player_id, player_update_s)
 
 
 def send_restarting_message():
@@ -907,7 +927,6 @@ def api_eventfeed():
     return jsonify({"data":json_data,"cursor":None})
 
 @app.route('/api/campaign/profile/campaigns', methods=['GET'])
-@app.route('/api/notifications', methods=['GET'])
 @app.route('/api/announcements/active', methods=['GET'])
 def api_empty_arrays():
     return jsonify([])
@@ -921,7 +940,7 @@ def activity_moving_time(activity):
 def activity_protobuf_to_json(activity):
     profile = get_partial_profile(activity.player_id)
     return {"id":activity.id,"profile":{"id":str(activity.player_id),"firstName":profile.first_name,"lastName":profile.last_name, \
-    "imageSrc":"https://us-or-rly101.zwift.com/download/%s/avatarLarge.jpg" % activity.player_id,"approvalRequired":None}, \
+    "imageSrc":profile.imageSrc,"approvalRequired":None}, \
     "worldId":activity.f3,"name":activity.name,"sport":str_sport(activity.f29),"startDate":activity.start_date, \
     "endDate":activity.end_date,"distanceInMeters":activity.distance, \
     "totalElevation":activity.total_elevation,"calories":activity.calories,"primaryImageUrl":"", \
@@ -1140,7 +1159,7 @@ def api_events_search():
     else:
         return events.SerializeToString(), 200
 
-def create_event_wat(event_id, wa_type, pe, dest_ids):
+def create_event_wat(rel_id, wa_type, pe, dest_ids):
     player_update = udp_node_msgs_pb2.WorldAttribute()
     player_update.server_realm = udp_node_msgs_pb2.ZofflineConstants.RealmID
     player_update.wa_type = wa_type
@@ -1148,23 +1167,22 @@ def create_event_wat(event_id, wa_type, pe, dest_ids):
     player_update.world_time_expire = world_time() + 60000
     player_update.wa_f12 = 1
     player_update.timestamp = int(get_utc_time()*1000000)
+    player_update.rel_id = current_user.player_id
 
-    pe.ev_sg_id = event_id
+    pe.rel_id = rel_id
     pe.player_id = current_user.player_id
     #optional uint64 pje_f3/ple_f3 = 3;
     player_update.payload = pe.SerializeToString()
     player_update_s = player_update.SerializeToString()
 
-    for recieving_player_id in dest_ids:
-        if not recieving_player_id in player_update_queue:
-            player_update_queue[recieving_player_id] = list()
-        player_update_queue[recieving_player_id].append(player_update_s)
+    for receiving_player_id in dest_ids:
+        enqueue_player_update(receiving_player_id, player_update_s)
 
-@app.route('/api/events/subgroups/signup/<int:event_id>', methods=['POST'])
-@app.route('/api/events/signup/<int:event_id>', methods=['DELETE'])
+@app.route('/api/events/subgroups/signup/<int:rel_id>', methods=['POST'])
+@app.route('/api/events/signup/<int:rel_id>', methods=['DELETE'])
 @jwt_to_session_cookie
 @login_required
-def api_events_subgroups_signup_id(event_id):
+def api_events_subgroups_signup_id(rel_id):
     if request.method == 'POST':
         wa_type = udp_node_msgs_pb2.WA_TYPE.WAT_JOIN_E
         pe = events_pb2.PlayerJoinedEvent()
@@ -1174,24 +1192,24 @@ def api_events_subgroups_signup_id(event_id):
         pe = events_pb2.PlayerLeftEvent()
         ret = False
     #empty request.data
-    create_event_wat(event_id, wa_type, pe, online.keys())
+    create_event_wat(rel_id, wa_type, pe, online.keys())
     return jsonify({"signedUp":ret})
 
-@app.route('/api/events/subgroups/register/<int:event_id>', methods=['POST'])
-def api_events_subgroups_register_id(event_id):
+@app.route('/api/events/subgroups/register/<int:ev_sg_id>', methods=['POST'])
+def api_events_subgroups_register_id(ev_sg_id):
     return '{"registered":true}', 200
 
 
-@app.route('/api/events/subgroups/entrants/<int:event_id>', methods=['GET'])
-def api_events_subgroups_entrants_id(event_id):
+@app.route('/api/events/subgroups/entrants/<int:ev_sg_id>', methods=['GET'])
+def api_events_subgroups_entrants_id(ev_sg_id):
     return '[]', 200
 
-@app.route('/api/events/subgroups/invited_ride_sweepers/<int:event_id>', methods=['GET'])
-def api_events_subgroups_invited_ride_sweepers_id(event_id):
+@app.route('/api/events/subgroups/invited_ride_sweepers/<int:ev_sg_id>', methods=['GET'])
+def api_events_subgroups_invited_ride_sweepers_id(ev_sg_id):
     return '[]', 200
 
-@app.route('/api/events/subgroups/invited_ride_leaders/<int:event_id>', methods=['GET'])
-def api_events_subgroups_invited_ride_leaders_id(event_id):
+@app.route('/api/events/subgroups/invited_ride_leaders/<int:ev_sg_id>', methods=['GET'])
+def api_events_subgroups_invited_ride_leaders_id(ev_sg_id):
     return '[]', 200
 
 @app.route('/relay/race/event_starting_line/<int:event_id>', methods=['POST'])
@@ -1847,10 +1865,10 @@ def api_profiles_activities_id(player_id, activity_id):
     zwift_upload(player_id, activity)
     return response, 200
 
-@app.route('/api/profiles/<int:recieving_player_id>/activities/0/rideon', methods=['POST']) #activity_id Seem to always be 0, even when giving ride on to ppl with 30km+
+@app.route('/api/profiles/<int:receiving_player_id>/activities/0/rideon', methods=['POST']) #activity_id Seem to always be 0, even when giving ride on to ppl with 30km+
 @jwt_to_session_cookie
 @login_required
-def api_profiles_activities_rideon(recieving_player_id):
+def api_profiles_activities_rideon(receiving_player_id):
     sending_player_id = request.json['profileId']
     profile = get_partial_profile(sending_player_id)
     if not profile == None:
@@ -1863,136 +1881,293 @@ def api_profiles_activities_rideon(recieving_player_id):
 
         ride_on = udp_node_msgs_pb2.RideOn()
         ride_on.player_id = int(sending_player_id)
-        ride_on.to_player_id = int(recieving_player_id)
+        ride_on.to_player_id = int(receiving_player_id)
         ride_on.firstName = profile.first_name
         ride_on.lastName = profile.last_name
         ride_on.countryCode = profile.country_code
 
         player_update.payload = ride_on.SerializeToString()
 
-        if not recieving_player_id in player_update_queue:
-            player_update_queue[recieving_player_id] = list()
-        player_update_queue[recieving_player_id].append(player_update.SerializeToString())
+        enqueue_player_update(receiving_player_id, player_update.SerializeToString())
 
-        receiver = get_partial_profile(recieving_player_id)
+        receiver = get_partial_profile(receiving_player_id)
         message = 'Ride on ' + receiver.first_name + ' ' + receiver.last_name + '!'
         discord.send_message(message, sending_player_id)
     return '{}', 200
 
+def stime_to_timestamp(stime):
+    utc_offset = datetime.datetime.fromtimestamp(0) - datetime.datetime.utcfromtimestamp(0)
+    return int((datetime.datetime.strptime(stime, '%Y-%m-%dT%H:%M:%SZ') + utc_offset).timestamp())
+
+glb_notifications = {} #player_id -> dictionary, todo: move to database
+glb_cur_notif_id = 1
+def create_zca_notification(player_id, private_event, organizer):
+    global glb_cur_notif_id
+    if not player_id in glb_notifications.keys():
+        glb_notifications[player_id] = {}
+    d = glb_notifications[player_id]
+    argString0 = json.dumps({"eventId":private_event['id'],"eventStartDate": \
+        stime_to_timestamp(private_event['eventStart']), \
+        "otherInviteeCount":len(private_event['invitedProfileIds'])})
+    n = { "activity": None, "argLong0": 0, "argLong1": 0, "argString0": argString0,
+        "createdOn": str_timestamp(unix_time_millis(datetime.datetime.now())),
+        "fromProfile": {
+            "firstName": organizer["firstName"],
+            "id": organizer["id"],
+            "imageSrc": organizer["imageSrc"],
+            "imageSrcLarge": organizer["imageSrc"],
+            "lastName": organizer["lastName"],
+            "publicId": "283b140f-91d2-4882-bd8e-e4194ddf7128", #todo, hope not used
+            "socialFacts": {
+                "favoriteOfLoggedInPlayer": True, #todo
+                "followeeStatusOfLoggedInPlayer": "IS_FOLLOWING", #todo
+                "followerStatusOfLoggedInPlayer": "IS_FOLLOWING" #todo
+            }
+        },
+        "id": glb_cur_notif_id, "lastModified": None, "read": False, "readDate": None,
+        "type": "PRIVATE_EVENT_INVITE" 
+    }
+    d[glb_cur_notif_id] = n
+    glb_cur_notif_id += 1
+
+@app.route('/api/notifications', methods=['GET'])
+@jwt_to_session_cookie
+@login_required
+def api_notifications():
+    ret_notifications = []
+    if current_user.player_id in glb_notifications.keys():
+        for n in glb_notifications[current_user.player_id].values():
+            ret_notifications.append(n)
+    return jsonify(ret_notifications)
+
+@app.route('/api/notifications/<int:notif_id>', methods=['PUT'])
+@jwt_to_session_cookie
+@login_required
+def api_notifications_put(notif_id):
+    n = glb_notifications[current_user.player_id][notif_id]
+    n["read"] = request.json['read']
+    n["readDate"] = request.json['readDate']
+    n["lastModified"] = n["readDate"]
+    return '', 204
+
 glb_private_events = {} #todo: move to database
+glb_cur_pe_id = 1
 @app.route('/api/private_event/<int:meetup_id>', methods=['DELETE'])
 @jwt_to_session_cookie
 @login_required
 def api_private_event_remove(meetup_id):
     glb_private_events.pop(meetup_id)
+    for d in glb_notifications.values():
+        if meetup_id in d.keys():
+            d.pop(meetup_id)
     return '', 200
+
+def edit_private_event(player_id, meetup_id, decision):
+    if meetup_id in glb_private_events.keys():
+        e = glb_private_events[meetup_id]
+        for i in e['eventInvites']:
+            if i['invitedProfile']['id'] == player_id:
+                i['status'] = decision
+    return '', 204
+
+@app.route('/api/private_event/<int:meetup_id>/accept', methods=['PUT'])
+@jwt_to_session_cookie
+@login_required
+def api_private_event_accept(meetup_id):
+    return edit_private_event(current_user.player_id, meetup_id, 'ACCEPTED')
+
+@app.route('/api/private_event/<int:meetup_id>/reject', methods=['PUT'])
+@jwt_to_session_cookie
+@login_required
+def api_private_event_reject(meetup_id):
+    return edit_private_event(current_user.player_id, meetup_id, 'REJECTED')
 
 @app.route('/api/private_event/<int:meetup_id>', methods=['PUT'])
 @jwt_to_session_cookie
 @login_required
 def api_private_event_edit(meetup_id):
     str_pe = request.stream.read()
-    print(str_pe)
     json_pe = json.loads(str_pe)
     org_json_pe = glb_private_events[meetup_id]
     for f in ('culling', 'distanceInMeters', 'durationInSeconds', 'eventStart', 'invitedProfileIds', 'laps', 'routeId', 'rubberbanding', 'showResults', 'sport', 'workoutHash'):
         org_json_pe[f] = json_pe[f]
     org_json_pe['updateDate'] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    for d in glb_notifications.values():
+        if meetup_id in d.keys():
+            n = d[meetup_id]
+            n['read'] = False
+            n['readDate'] = None
+            n['lastModified'] = org_json_pe['updateDate']
     return jsonify({"id":meetup_id})
+
+def enqueue_wa_event_invites(player_id, wa):
+    for wat in (udp_node_msgs_pb2.WA_TYPE.WAT_EVENT, udp_node_msgs_pb2.WA_TYPE.WAT_INV_W):
+        wa.wa_type = wat
+        enqueue_player_update(player_id, wa.SerializeToString())
 
 @app.route('/api/private_event', methods=['POST'])
 @jwt_to_session_cookie
 @login_required
 def api_private_event_new(): #{"culling":true,"description":"mesg","distanceInMeters":13800.0,"durationInSeconds":0,"eventStart":"2022-03-17T16:27:00Z","invitedProfileIds":[4357549,4486967],"laps":0,"routeId":2474227587,"rubberbanding":true,"showResults":false,"sport":"CYCLING","workoutHash":0}
+    global glb_cur_pe_id
     str_pe = request.stream.read()
-    #print(str_pe)
     json_pe = json.loads(str_pe)
-    pe_id = len(glb_private_events) * 10 + 1
+    pe_id = glb_cur_pe_id * 10 + 1
+    glb_cur_pe_id += 1
     json_pe['id'] = pe_id
     ev_sg_id = pe_id + 2
     json_pe['eventSubgroupId'] = ev_sg_id
     json_pe['name'] = "Route #%s" % json_pe['routeId'] #todo: more readable
-    json_pe['inviteStatus'] = "ACCEPTED" #todo: real status
     json_pe['acceptedTotalCount'] = len(json_pe['invitedProfileIds']) #todo: real count
-    json_pe['acceptedFolloweeCount'] = len(json_pe['invitedProfileIds']) #todo: real count
-    json_pe['invitedTotalCount'] = len(json_pe['invitedProfileIds'])
+    json_pe['acceptedFolloweeCount'] = len(json_pe['invitedProfileIds']) + 1 #todo: real count
+    json_pe['invitedTotalCount'] = len(json_pe['invitedProfileIds']) + 1
     partial_profile = get_partial_profile(current_user.player_id)
     json_pe['organizerProfileId'] = current_user.player_id
     json_pe['organizerId'] = current_user.player_id
-    json_pe['startLocation'] = 1 #todo
-    json_pe['allowsLateJoin'] = True #todo
+    json_pe['startLocation'] = 1 #todo_pe
+    json_pe['allowsLateJoin'] = True #todo_pe
     json_pe['organizerFirstName'] = partial_profile.first_name
     json_pe['organizerLastName'] = partial_profile.last_name
     json_pe['updateDate'] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     json_pe['organizerImageUrl'] = "https://us-or-rly101.zwift.com/download/%s/avatarLarge.jpg" % current_user.player_id
-    eventInvites = [{"invitedProfile": {
-                "countryCode": partial_profile.country_code,
-                "enrolledZwiftAcademy": False, #todo
-                "firstName": partial_profile.first_name,
-                "id": current_user.player_id,
-                "imageSrc": json_pe['organizerImageUrl'],
-                "lastName": partial_profile.last_name,
-                "male": True, #todo
-                "playerType": "NORMAL", #todo
-                "socialFacts": {
-                    "followerStatusOfLoggedInPlayer": "SELF",#todo
-                    "isFavoriteOfLoggedInPlayer": False #todo
-                }
-            },
-            "status": "ACCEPTED"}]
-    create_event_wat(ev_sg_id, udp_node_msgs_pb2.WA_TYPE.WAT_JOIN_E, events_pb2.PlayerJoinedEvent(), [current_user.player_id])
+    eventInvites = [{"invitedProfile": partial_profile.to_json(), "status": "ACCEPTED"}]
+    create_event_wat(ev_sg_id, udp_node_msgs_pb2.WA_TYPE.WAT_JOIN_E, events_pb2.PlayerJoinedEvent(), online.keys())
 
-    pe = events_pb2.EventInviteProto()
+    pe = events_pb2.Event()
     player_update = udp_node_msgs_pb2.WorldAttribute()
     player_update.server_realm = udp_node_msgs_pb2.ZofflineConstants.RealmID
-    player_update.wa_type = udp_node_msgs_pb2.WA_TYPE.WAT_INV_W
     player_update.world_time_born = world_time()
     player_update.world_time_expire = world_time() + 60000
     player_update.wa_f12 = 1
     player_update.timestamp = int(get_utc_time()*1000000)
 
-    pe.invite_f2 = 1
+    pe.id = pe_id
+    pe.server_realm = udp_node_msgs_pb2.ZofflineConstants.RealmID
+    pe.name = json_pe['name']
+    if 'description' in json_pe:
+        pe.description = json_pe['description']
+    pe.eventStart = stime_to_timestamp(json_pe['eventStart'])*1000
+    pe.distanceInMeters = json_pe['distanceInMeters']
+    pe.laps = json_pe['laps']
+    if 'imageUrl' in json_pe:
+        pe.imageUrl = json_pe['imageUrl']
+    pe.durationInSeconds = json_pe['durationInSeconds']
+    pe.route_id = json_pe['routeId']
+    #{"rubberbanding":true,"showResults":false,"workoutHash":0} todo_pe
+    pe.visible = True
+    pe.jerseyHash = 0
+    pe.sport = sport_from_str(json_pe['sport'])
+    #pe.uint64 e_f23 = 23; =0
+    pe.eventType = events_pb2.EventType.EFONDO
+    if 'culling' in json_pe:
+        if json_pe['culling']:
+            pe.eventType = events_pb2.EventType.RACE
+    #pe.uint64 e_f25 = 25; =0
+    pe.e_f27 = 2 #<=4, ENUM? saw = 2
+    #pe.bool overrideMapPreferences = 28; =0
+    #pe.bool invisibleToNonParticipants = 29; =0 todo_pe
+    pe.lateJoinInMinutes = 30 #todo_pe
+    #pe.course_id = 1 #todo_pe =f(json_pe['routeId']) ???
     player_update.payload = pe.SerializeToString()
-    player_update_s = player_update.SerializeToString()
+    enqueue_wa_event_invites(current_user.player_id, player_update)
 
     for peer_id in json_pe['invitedProfileIds']:
-        if not peer_id in player_update_queue:
-            player_update_queue[peer_id] = list()
-        player_update_queue[peer_id].append(player_update_s)
+        create_zca_notification(peer_id, json_pe, eventInvites[0]["invitedProfile"])
+        player_update.rel_id = peer_id
+        enqueue_wa_event_invites(peer_id, player_update)
         p_partial_profile = get_partial_profile(peer_id)
-        eventInvites.append({"invitedProfile": {
-                "countryCode": p_partial_profile.country_code,
-                "enrolledZwiftAcademy": False, #todo
-                "firstName": p_partial_profile.first_name,
-                "id": peer_id,
-                "imageSrc": "https://us-or-rly101.zwift.com/download/%s/avatarLarge.jpg" % peer_id,
-                "lastName": p_partial_profile.last_name,
-                "male": True, #todo
-                "playerType": "NORMAL", #todo
-                "socialFacts": {
-                    "followerStatusOfLoggedInPlayer": "IS_FOLLOWING", #todo
-                    "isFavoriteOfLoggedInPlayer": True #todo
-                }
-            },
-            "status": "PENDING"}) #todo
+        eventInvites.append({"invitedProfile": p_partial_profile.to_json(), "status": "PENDING"})
     json_pe['eventInvites'] = eventInvites
 
     glb_private_events[pe_id] = json_pe
     return jsonify({"id":pe_id}), 201
 
-@app.route('/api/private_event/feed', methods=['GET', 'POST'])
+def clone_and_append_social(player_id, private_event):
+    ret = deepcopy(private_event)
+    status = 'PENDING'
+    for i in ret['eventInvites']:
+        p = i['invitedProfile']
+        #todo: strict social
+        if p['id'] == player_id:
+            p['socialFacts'] = {"followerStatusOfLoggedInPlayer":"SELF","isFavoriteOfLoggedInPlayer":False}
+            status = i['status']
+        else:
+            p['socialFacts'] = {"followerStatusOfLoggedInPlayer":"IS_FOLLOWING","isFavoriteOfLoggedInPlayer":True}
+    ret['inviteStatus'] = status
+    return ret
+
+def jsonPrivateEventFeedToProtobuf(jfeed):
+    ret = events_pb2.PrivateEventFeedListProto()
+    for jpef in jfeed:
+        pef = ret.pef.add()
+        pef.event_id = jpef['id']
+        pef.sport = sport_from_str(jpef['sport'])
+        pef.eventSubgroupStart = stime_to_timestamp(jpef['eventStart'])*1000
+        pef.route_id = jpef['routeId']
+        pef.durationInSeconds = jpef['durationInSeconds']
+        pef.distanceInMeters = jpef['distanceInMeters']
+        pef.answeredCount = 1 #todo
+        pef.invitedTotalCount = jpef['invitedTotalCount']
+        pef.acceptedFolloweeCount = jpef['acceptedFolloweeCount']
+        pef.acceptedTotalCount = jpef['acceptedTotalCount']
+        pef.organizerImageUrl = jpef['organizerImageUrl']
+        pef.organizerProfileId = jpef['organizerProfileId']
+        pef.organizerFirstName = jpef['organizerFirstName']
+        pef.organizerLastName = jpef['organizerLastName']
+        pef.updateDate = stime_to_timestamp(jpef['updateDate'])*1000
+        pef.subgroupId = jpef['eventSubgroupId']
+        pef.laps = jpef['laps']
+        pef.rubberbanding = jpef['rubberbanding']
+    return ret
+
+@app.route('/api/private_event/feed', methods=['GET'])
+@jwt_to_session_cookie
+@login_required
 def api_private_event_feed():
     ret = []
     for pe in glb_private_events.values():
-        ret.append(pe)
-    #print(ret)
-    return jsonify(ret)
+        ret.append(clone_and_append_social(current_user.player_id, pe))
+    if(request.headers['Accept'] == 'application/json'):
+        return jsonify(ret)
+    return jsonPrivateEventFeedToProtobuf(ret).SerializeToString(), 200    
+
+def jsonPrivateEventToProtobuf(je):
+    ret = events_pb2.PrivateEventProto()
+    ret.id = je['id']
+    ret.sport = sport_from_str(je['sport'])
+    ret.eventStart = stime_to_timestamp(je['eventStart'])*1000
+    ret.routeId = je['routeId']
+    ret.startLocation = je['startLocation']
+    ret.durationInSeconds = je['durationInSeconds']
+    ret.distanceInMeters = je['distanceInMeters']
+    if 'description' in je:
+        ret.description = je['description']
+    ret.workoutHash = je['workoutHash']
+    ret.organizerId = je['organizerProfileId']
+    for jinv in je['eventInvites']:
+        jp = jinv['invitedProfile']
+        inv = ret.eventInvites.add()
+        inv.profile.player_id = jp['id']
+        inv.profile.firstName = jp['firstName']
+        inv.profile.lastName = jp['lastName']
+        inv.profile.imageSrc = jp['imageSrc']
+        inv.profile.enrolledZwiftAcademy = jp['enrolledZwiftAcademy']
+        inv.profile.male = jp['male']
+        inv.profile.player_type = profile_pb2.PlayerType.Value(jp['playerType'])
+        inv.status = events_pb2.EventInviteStatus.Value(jinv['status'])
+    ret.showResults = je['showResults']
+    ret.laps = je['laps']
+    ret.rubberbanding = je['rubberbanding']
+    return ret
 
 @app.route('/api/private_event/<int:event_id>', methods=['GET'])
+@jwt_to_session_cookie
+@login_required
 def api_private_event_id(event_id):
-    ret = glb_private_events[event_id]
-    print(ret)
-    return jsonify(ret)
+    ret = clone_and_append_social(current_user.player_id, glb_private_events[event_id])
+    if(request.headers['Accept'] == 'application/json'):
+        return jsonify(ret)
+    return jsonPrivateEventToProtobuf(ret).SerializeToString(), 200
 
 @app.route('/api/private_event/entitlement', methods=['GET'])
 def api_private_event_entitlement():
@@ -2261,10 +2436,10 @@ def relay_worlds_generic(server_realm=None):
             player_update.world_time_expire = world_time() + 60000
             player_update.wa_f12 = 1
             player_update.timestamp = int(get_utc_time()*1000000)
-            for recieving_player_id in online.keys():
+            for receiving_player_id in online.keys():
                 should_receive = False
                 if player_update.wa_type == udp_node_msgs_pb2.WA_TYPE.WAT_SPA or player_update.wa_type == udp_node_msgs_pb2.WA_TYPE.WAT_SR:
-                    recieving_player = online[recieving_player_id]
+                    receiving_player = online[receiving_player_id]
                     #Chat message
                     if player_update.wa_type == udp_node_msgs_pb2.WA_TYPE.WAT_SPA:
                         chat_message = tcp_node_msgs_pb2.SocialPlayerAction()
@@ -2273,7 +2448,7 @@ def relay_worlds_generic(server_realm=None):
                         if sending_player_id in online:
                             sending_player = online[sending_player_id]
                             #Check that players are on same course and close to each other
-                            if is_nearby(sending_player, recieving_player):
+                            if is_nearby(sending_player, receiving_player):
                                 should_receive = True
                     #Segment complete
                     else:
@@ -2283,15 +2458,13 @@ def relay_worlds_generic(server_realm=None):
                         if sending_player_id in online:
                             sending_player = online[sending_player_id]
                             #Check that players are on same course
-                            if get_course(sending_player) == get_course(recieving_player) or recieving_player.watchingRiderId == sending_player_id:
+                            if get_course(sending_player) == get_course(receiving_player) or receiving_player.watchingRiderId == sending_player_id:
                                 should_receive = True
                 #Other PlayerUpdate, send to all
                 else:
                     should_receive = True
                 if should_receive:
-                    if not recieving_player_id in player_update_queue:
-                        player_update_queue[recieving_player_id] = list()
-                    player_update_queue[recieving_player_id].append(player_update.SerializeToString())
+                    enqueue_player_update(receiving_player_id, player_update.SerializeToString())
             if player_update.wa_type == udp_node_msgs_pb2.WA_TYPE.WAT_SPA:
                 chat_message = tcp_node_msgs_pb2.SocialPlayerAction()
                 chat_message.ParseFromString(player_update.payload)
@@ -2374,8 +2547,21 @@ def convert_events_to_json(events):
         json_events.append(json_event)
     return json_events
 
+def transformPrivateEvents(player_id, max_count, status):
+    ret = []
+    if max_count > 0:
+        for e in glb_private_events.values():
+            for i in e['eventInvites']:
+                if i['invitedProfile']['id'] == player_id:
+                    if i['status'] == status:
+                        e_clone = deepcopy(e)
+                        e_clone['inviteStatus'] = status
+                        ret.append(e_clone)
+                        if len(ret) >= max_count:
+                            return ret
+    return ret
 
-#todo: followingCount=3&pendingEventInviteCount=50&acceptedEventInviteCount=3&playerTotal=true&playerSport=all&eventSport=CYCLING&fetchCampaign=true
+#todo: followingCount=3&playerSport=all&eventSport=CYCLING&fetchCampaign=true
 @app.route('/relay/worlds/<int:server_realm>/aggregate/mobile', methods=['GET'])
 @jwt_to_session_cookie
 @login_required
@@ -2388,8 +2574,12 @@ def relay_worlds_id_aggregate_mobile(server_realm):
     eventCount = int(request.args.get('eventCount'))
     events = get_events(eventCount, 'CYCLING') #runners, sorry!
     json_events = convert_events_to_json(events)
-    return jsonify({"events":json_events,"goals":json_goals,"activities":json_activities,"pendingPrivateEventFeed":[],"acceptedPrivateEventFeed":[],"hasFolloweesToRideOn":False, \
-    "worldName":"MAKURIISLANDS","playerCount":0,"followingPlayerCount":0,"followingPlayers":[]})
+    pendingEventInviteCount = int(request.args.get('pendingEventInviteCount'))
+    ppeFeed = transformPrivateEvents(current_user.player_id, pendingEventInviteCount, 'PENDING')
+    acceptedEventInviteCount = int(request.args.get('acceptedEventInviteCount'))
+    apeFeed = transformPrivateEvents(current_user.player_id, acceptedEventInviteCount, 'ACCEPTED')
+    return jsonify({"events":json_events,"goals":json_goals,"activities":json_activities,"pendingPrivateEventFeed":ppeFeed,"acceptedPrivateEventFeed":apeFeed,"hasFolloweesToRideOn":False, \
+    "worldName":"MAKURIISLANDS","playerCount": len(online),"followingPlayerCount":0,"followingPlayers":[]})
 
 @app.route('/relay/worlds/<int:server_realm>', methods=['GET'])
 @app.route('/relay/worlds/<int:server_realm>/', methods=['GET'])
@@ -2484,9 +2674,7 @@ def relay_worlds_attributes():
         else:
             should_receive = True
         if should_receive:
-            if not receiving_player_id in player_update_queue:
-                player_update_queue[receiving_player_id] = list()
-            player_update_queue[receiving_player_id].append(player_update.SerializeToString())
+            enqueue_player_update(receiving_player_id, player_update.SerializeToString())
     # If it's a chat message, send to Discord
     if player_update.wa_type == udp_node_msgs_pb2.WA_TYPE.WAT_SPA:
         chat_message = tcp_node_msgs_pb2.SocialPlayerAction()
@@ -2769,7 +2957,10 @@ def auth_realms_zwift_protocol_openid_connect_token():
             return jsonify(fake_jwt_with_session_cookie(session_cookie)), 200
         elif "refresh_token" in request.form:
             token = jwt.decode(request.form['refresh_token'], options=({'verify_signature': False, 'verify_aud': False}))
-            return jsonify(fake_jwt_with_session_cookie(token['session_cookie']))
+            if 'session_cookie' in token:
+                return jsonify(fake_jwt_with_session_cookie(token['session_cookie']))
+            else:
+                return '', 401
         else:  # android login
             current_user.enable_ghosts = user.enable_ghosts
             ghosts_enabled[current_user.player_id] = current_user.enable_ghosts
