@@ -57,6 +57,7 @@ import events_pb2
 import variants_pb2
 import playback_pb2
 import user_storage_pb2
+import fitness_pb2
 import online_sync
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -3708,6 +3709,32 @@ def api_player_profile_user_game_storage_attributes():
         if user_storage.attributes.HasField(field):
             getattr(ret.attributes, field).CopyFrom(getattr(user_storage.attributes, field))
     return ret.SerializeToString(), 200
+
+
+@app.route('/api/fitness/metrics-and-goals', methods=['GET'])
+@jwt_to_session_cookie
+@login_required
+def api_fitness_metrics_and_goals():
+    profile = profile_pb2.PlayerProfile()
+    profile_file = '%s/%s/profile.bin' % (STORAGE_DIR, current_user.player_id)
+    if os.path.isfile(profile_file):
+        with open(profile_file, 'rb') as f:
+            profile.ParseFromString(f.read())
+    fitness = fitness_pb2.Fitness()
+    fitness.streak = profile.streak
+    for i, week in enumerate([fitness.this_week, fitness.last_week]):
+        start, end = get_week_range(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=i * 7))
+        week.start = start.strftime('%Y-%m-%d')
+        stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories) FROM activity WHERE player_id = :p
+            AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
+        row = db.session.execute(stmt, {"p": current_user.player_id, "s": week.start, "e": end.strftime('%Y-%m-%d')}).first()
+        week.distance = int(row[0]) if row[0] else 0
+        week.calories = int(row[1]) if row[1] else 0
+        week.work = int(row[1] * 1.045) if row[1] else 0
+    fitness.f4.start = ""
+    fitness.f4.f4 = 1
+    fitness.f5 = 1
+    return fitness.SerializeToString(), 200
 
 
 @app.teardown_request

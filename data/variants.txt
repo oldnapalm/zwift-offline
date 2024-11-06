@@ -11,6 +11,7 @@
     },
     {
       "name": "fitness_widget",
+      "value": true,
       "values": {
         "fields": {
           "goal_unit": {
