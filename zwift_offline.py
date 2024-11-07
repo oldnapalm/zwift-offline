@@ -3711,6 +3711,33 @@ def api_player_profile_user_game_storage_attributes():
     return ret.SerializeToString(), 200
 
 
+def get_power_zones(player_id, activity, ftp):
+    power_zones_dir = '%s/%s/power_zones' % (STORAGE_DIR, player_id)
+    make_dir(power_zones_dir)
+    power_zones_file = '%s/%s' % (power_zones_dir, activity.id)
+    if os.path.isfile(power_zones_file):
+        with open(power_zones_file) as f:
+            return json.load(f)
+    zones = [0, 0, 0, 0, 0, 0, 0]
+    limits = [ftp * 0.6, ftp * 0.76, ftp * 0.9, ftp * 1.05, ftp * 1.19, None]
+    fit_file = '%s/%s/fit/%s - %s' % (STORAGE_DIR, player_id, activity.id, activity.fit_filename)
+    if os.path.isfile(fit_file):
+        with fitdecode.FitReader(fit_file) as fit:
+            for frame in fit:
+                if frame.frame_type == fitdecode.FIT_FRAME_DATA and frame.name == 'record':
+                    p = frame.get_value('power')
+                    if p != None:
+                        for i in range(0, 6):
+                            if p < limits[i] or limits[i] == None:
+                                zones[i] += 1
+                                break
+        try:
+            with open(power_zones_file, 'w') as f:
+                json.dump(zones, f)
+        except Exception as exc:
+            logger.warning('get_power_zones: %s' % repr(exc))
+    return zones
+
 @app.route('/api/fitness/metrics-and-goals', methods=['GET'])
 @jwt_to_session_cookie
 @login_required
@@ -3721,7 +3748,7 @@ def api_fitness_metrics_and_goals():
         with open(profile_file, 'rb') as f:
             profile.ParseFromString(f.read())
     fitness = fitness_pb2.Fitness()
-    fitness.streak = profile.streak
+    fitness.streak = profile.current_streak
     for i, week in enumerate([fitness.this_week, fitness.last_week]):
         start, end = get_week_range(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=i * 7))
         week.start = start.strftime('%Y-%m-%d')
@@ -3732,6 +3759,7 @@ def api_fitness_metrics_and_goals():
         week.calories = int(row[1]) if row[1] else 0
         week.work = int(row[1] * 1.045) if row[1] else 0
         for i in range(0, 7):
+            zones = [0, 0, 0, 0, 0, 0, 0]
             day = start + datetime.timedelta(days=i)
             stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories) FROM activity WHERE player_id = :p
                 AND strftime('%F', start_date) = strftime('%F', :d)""")
@@ -3742,6 +3770,19 @@ def api_fitness_metrics_and_goals():
                 d.distance = int(row[0])
                 d.calories = int(row[1]) if row[1] else 0
                 d.work = int(row[1] * 1.045) if row[1] else 0
+                stmt = sqlalchemy.text("""SELECT id, fit_filename FROM activity WHERE player_id = :p
+                    AND strftime('%F', start_date) = strftime('%F', :d)""")
+                rows = db.session.execute(stmt, {"p": current_user.player_id, "d": day})
+                for row in rows:
+                    pz = get_power_zones(current_user.player_id, row, profile.ftp)
+                    for i in range(0, 7):
+                        zones[i] += pz[i]
+                total = sum(zones)
+                if total:
+                    for i in range(0, 7):
+                        pz = d.power_zones.add()
+                        pz.zone = i + 1
+                        pz.percentage = zones[i] * 100 / total
     fitness.f4.start = ""
     fitness.f4.f4 = 1
     fitness.f5 = 1
