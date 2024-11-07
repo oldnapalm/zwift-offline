@@ -3727,13 +3727,25 @@ def api_fitness_metrics_and_goals():
         week.start = start.strftime('%Y-%m-%d')
         stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories) FROM activity WHERE player_id = :p
             AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
-        row = db.session.execute(stmt, {"p": current_user.player_id, "s": week.start, "e": end.strftime('%Y-%m-%d')}).first()
+        row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
         week.distance = int(row[0]) if row[0] else 0
         week.calories = int(row[1]) if row[1] else 0
         week.work = int(row[1] * 1.045) if row[1] else 0
+        for i in range(0, 7):
+            day = start + datetime.timedelta(days=i)
+            stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories) FROM activity WHERE player_id = :p
+                AND strftime('%F', start_date) = strftime('%F', :d)""")
+            row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
+            if row[0]:
+                d = week.days.add()
+                d.day = day.strftime('%a').lower()
+                d.distance = int(row[0])
+                d.calories = int(row[1]) if row[1] else 0
+                d.work = int(row[1] * 1.045) if row[1] else 0
     fitness.f4.start = ""
     fitness.f4.f4 = 1
     fitness.f5 = 1
+    print(fitness)
     return fitness.SerializeToString(), 200
 
 
