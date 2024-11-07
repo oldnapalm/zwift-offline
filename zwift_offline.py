@@ -3728,7 +3728,7 @@ def get_power_zones(player_id, activity, ftp):
                     p = frame.get_value('power')
                     if p != None:
                         for i in range(0, 6):
-                            if p < limits[i] or limits[i] == None:
+                            if limits[i] == None or p < limits[i]:
                                 zones[i] += 1
                                 break
         try:
@@ -3772,11 +3772,8 @@ def api_fitness_metrics_and_goals():
                 d.work = int(row[1] * 1.045) if row[1] else 0
                 stmt = sqlalchemy.text("""SELECT id, fit_filename FROM activity WHERE player_id = :p
                     AND strftime('%F', start_date) = strftime('%F', :d)""")
-                rows = db.session.execute(stmt, {"p": current_user.player_id, "d": day})
-                for row in rows:
-                    pz = get_power_zones(current_user.player_id, row, profile.ftp)
-                    for i in range(0, 7):
-                        zones[i] += pz[i]
+                for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
+                    zones = [a + b for a, b in zip(zones, get_power_zones(current_user.player_id, row, profile.ftp))]
                 total = sum(zones)
                 if total:
                     for i in range(0, 7):
