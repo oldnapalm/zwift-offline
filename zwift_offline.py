@@ -3713,7 +3713,6 @@ def api_player_profile_user_game_storage_attributes():
 
 def get_power_zones(player_id, activity, ftp):
     power_zones_dir = '%s/%s/power_zones' % (STORAGE_DIR, player_id)
-    make_dir(power_zones_dir)
     power_zones_file = '%s/%s' % (power_zones_dir, activity.id)
     if os.path.isfile(power_zones_file):
         with open(power_zones_file) as f:
@@ -3731,11 +3730,9 @@ def get_power_zones(player_id, activity, ftp):
                             if limits[i] == None or p < limits[i]:
                                 zones[i] += 1
                                 break
-        try:
+        if make_dir(power_zones_dir):
             with open(power_zones_file, 'w') as f:
                 json.dump(zones, f)
-        except Exception as exc:
-            logger.warning('get_power_zones: %s' % repr(exc))
     return zones
 
 @app.route('/api/fitness/metrics-and-goals', methods=['GET'])
