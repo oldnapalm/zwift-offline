@@ -3777,9 +3777,6 @@ def api_fitness_metrics_and_goals():
                         pz = d.power_zones.add()
                         pz.zone = i + 1
                         pz.percentage = zones[i] * 100 / total
-    fitness.f4.start = ""
-    fitness.f4.f4 = 1
-    fitness.f5 = 1
     print(fitness)
     return fitness.SerializeToString(), 200
 

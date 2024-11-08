@@ -4,7 +4,7 @@ message Fitness {
     optional int32 streak = 1;
     optional WeekMetrics this_week = 2;
     optional WeekMetrics last_week = 3;
-    optional WeekMetrics f4 = 4;
+    optional SportGoals goals = 4;
     optional int32 f5 = 5;
 }
 
@@ -34,4 +34,16 @@ message DayMetrics {
 message PowerZonePercentages {
     optional int32 zone = 1;
     optional float percentage = 2;
+}
+
+message SportGoals {
+    optional GoalSetting goal_setting = 1;
+    optional int32 f4 = 4;
+    optional int64 last_updated = 5;
+}
+
+message GoalSetting {
+    optional int32 f1 = 1;
+    optional int32 f2 = 2;
+    optional int32 f3 = 3;
 }
