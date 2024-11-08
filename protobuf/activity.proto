@@ -147,6 +147,10 @@ message Activity {  //where is primaryImageUrl, feedImageThumbnailUrl, activityR
 	optional string club_name = 39;
 	optional int64 movingTimeInMs = 40;
 	//repeated ClubAttribution cas = 41;
+	optional float work = 44;
+	optional float tss = 45;
+	optional float normalized_power = 46;
+	repeated int32 power_zones = 48;
 }
 
 message ActivityList {

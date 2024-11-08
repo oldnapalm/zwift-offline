@@ -16,7 +16,7 @@ message WeekMetrics {
     optional int32 f5 = 5;
     optional int32 work = 6;
     optional int32 calories = 7;
-    optional float f8 = 8;
+    optional float tss = 8;
     repeated DayMetrics days = 9;
 }
 
@@ -27,7 +27,7 @@ message DayMetrics {
     optional int32 f4 = 4;
     optional int32 work = 5;
     optional int32 calories = 6;
-    optional float f7 = 7;
+    optional float tss = 7;
     repeated PowerZonePercentages power_zones = 8;
 }
 
