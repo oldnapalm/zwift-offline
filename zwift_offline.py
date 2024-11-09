@@ -2042,7 +2042,7 @@ def api_profiles_activities(player_id):
     rows = db.session.execute(sqlalchemy.text("SELECT * FROM activity WHERE player_id = :p AND date > date('now', '-1 month')"), {"p": player_id}).mappings()
     for row in rows:
         activity = activities.activities.add()
-        row_to_protobuf(row, activity, exclude_fields=['fit'])
+        row_to_protobuf(row, activity, exclude_fields=['fit', 'power_zones'])
     return activities.SerializeToString(), 200
 
 @app.route('/api/profiles/<int:player_id>/activities/<int:activity_id>/images', methods=['POST'])
