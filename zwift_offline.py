@@ -3742,7 +3742,7 @@ def api_fitness_metrics_and_goals():
         week.distance = int(row[0]) if row[0] else 0
         week.calories = int(row[1]) if row[1] else 0
         week.work = int(row[2]) if row[2] else 0
-        week.tss = int(row[3]) if row[3] else 0
+        week.tss = row[3] if row[3] else 0
         for i in range(0, 7):
             zones = [0, 0, 0, 0, 0, 0, 0]
             day = start + datetime.timedelta(days=i)
@@ -3755,7 +3755,7 @@ def api_fitness_metrics_and_goals():
                 d.distance = int(row[0])
                 d.calories = int(row[1]) if row[1] else 0
                 d.work = int(row[2]) if row[2] else 0
-                d.tss = int(row[3]) if row[3] else 0
+                d.tss = row[3] if row[3] else 0
                 stmt = sqlalchemy.text("""SELECT power_zones FROM activity WHERE player_id = :p
                     AND strftime('%F', start_date) = strftime('%F', :d)""")
                 for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
