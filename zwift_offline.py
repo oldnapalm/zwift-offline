@@ -251,7 +251,6 @@ class Activity(db.Model):
     work = db.Column(db.Float)
     tss = db.Column(db.Float)
     normalized_power = db.Column(db.Float)
-    power_zones = db.Column(db.Text)
 
 class SegmentResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1094,14 +1093,11 @@ def logout(username):
     return redirect(url_for('login'))
 
 
-def insert_protobuf_into_db(table_name, msg, exclude_fields=[], json_fields=[]):
+def insert_protobuf_into_db(table_name, msg, exclude_fields=[]):
     msg_dict = MessageToDict(msg, preserving_proto_field_name=True, use_integers_for_enums=True)
     for key in exclude_fields:
         if key in msg_dict:
             del msg_dict[key]
-    for key in json_fields:
-        if key in msg_dict:
-            msg_dict[key] = json.dumps(msg_dict[key])
     if 'id' in msg_dict:
         del msg_dict['id']
     row = table_name(**msg_dict)
@@ -1110,14 +1106,11 @@ def insert_protobuf_into_db(table_name, msg, exclude_fields=[], json_fields=[]):
     return row.id
 
 
-def update_protobuf_in_db(table_name, msg, id, exclude_fields=[], json_fields=[]):
+def update_protobuf_in_db(table_name, msg, id, exclude_fields=[]):
     msg_dict = MessageToDict(msg, preserving_proto_field_name=True, use_integers_for_enums=True)
     for key in exclude_fields:
         if key in msg_dict:
             del msg_dict[key]
-    for key in json_fields:
-        if key in msg_dict:
-            msg_dict[key] = json.dumps(msg_dict[key])
     table_name.query.filter_by(id=id).update(msg_dict)
     db.session.commit()
 
@@ -2034,7 +2027,7 @@ def api_profiles_activities(player_id):
             return '', 401
         activity = activity_pb2.Activity()
         activity.ParseFromString(request.stream.read())
-        activity.id = insert_protobuf_into_db(Activity, activity, ['fit'], ['power_zones'])
+        activity.id = insert_protobuf_into_db(Activity, activity, ['fit', 'power_zones'])
         return '{"id": %ld}' % activity.id, 200
 
     # request.method == 'GET'
@@ -2042,7 +2035,7 @@ def api_profiles_activities(player_id):
     rows = db.session.execute(sqlalchemy.text("SELECT * FROM activity WHERE player_id = :p AND date > date('now', '-1 month')"), {"p": player_id}).mappings()
     for row in rows:
         activity = activities.activities.add()
-        row_to_protobuf(row, activity, exclude_fields=['fit', 'power_zones'])
+        row_to_protobuf(row, activity, exclude_fields=['fit'])
     return activities.SerializeToString(), 200
 
 @app.route('/api/profiles/<int:player_id>/activities/<int:activity_id>/images', methods=['POST'])
@@ -2418,7 +2411,7 @@ def api_profiles_activities_id(player_id, activity_id):
     stream = request.stream.read()
     activity = activity_pb2.Activity()
     activity.ParseFromString(stream)
-    update_protobuf_in_db(Activity, activity, activity_id, ['fit'], ['power_zones'])
+    update_protobuf_in_db(Activity, activity, activity_id, ['fit', 'power_zones'])
 
     response = '{"id":%s}' % activity_id
     if request.args.get('upload-to-strava') != 'true':
@@ -2431,6 +2424,7 @@ def api_profiles_activities_id(player_id, activity_id):
 
     create_power_curve(player_id, BytesIO(activity.fit))
     save_fit(player_id, '%s - %s' % (activity_id, activity.fit_filename), activity.fit)
+    save_power_zones(player_id, activity_id, [z for z in activity.power_zones])
     if current_user.enable_ghosts:
         save_ghost(player_id, quote(activity.name, safe=' '))
     # For using with upload_activity
@@ -3720,6 +3714,33 @@ def api_player_profile_user_game_storage_attributes():
             getattr(ret.attributes, field).CopyFrom(getattr(user_storage.attributes, field))
     return ret.SerializeToString(), 200
 
+def save_power_zones(player_id, activity_id, data):
+    power_zones_dir = '%s/%s/power_zones' % (STORAGE_DIR, player_id)
+    if not make_dir(power_zones_dir):
+        return
+    with open('%s/%s' % (power_zones_dir, activity_id), 'w') as f:
+        json.dump(data, f)
+
+def load_power_zones(player_id, activity, ftp):
+    power_zones_file = '%s/%s/power_zones/%s' % (STORAGE_DIR, player_id, activity.id)
+    if os.path.isfile(power_zones_file):
+        with open(power_zones_file) as f:
+            return json.load(f)
+    zones = [0, 0, 0, 0, 0, 0, 0]
+    limits = [ftp * 0.6, ftp * 0.76, ftp * 0.9, ftp * 1.05, ftp * 1.19, None]
+    fit_file = '%s/%s/fit/%s - %s' % (STORAGE_DIR, player_id, activity.id, activity.fit_filename)
+    if os.path.isfile(fit_file):
+        with fitdecode.FitReader(fit_file) as fit:
+            for frame in fit:
+                if frame.frame_type == fitdecode.FIT_FRAME_DATA and frame.name == 'record':
+                    p = frame.get_value('power')
+                    if p != None:
+                        for i in range(0, 6):
+                            if limits[i] == None or p < limits[i]:
+                                zones[i] += 1
+                                break
+        save_power_zones(player_id, activity.id, zones)
+    return zones
 
 @app.route('/api/fitness/metrics-and-goals', methods=['GET'])
 @jwt_to_session_cookie
@@ -3756,11 +3777,10 @@ def api_fitness_metrics_and_goals():
                 d.calories = int(row[1]) if row[1] else 0
                 d.work = int(row[2]) if row[2] else 0
                 d.tss = row[3] if row[3] else 0
-                stmt = sqlalchemy.text("""SELECT power_zones FROM activity WHERE player_id = :p
+                stmt = sqlalchemy.text("""SELECT id, fit_filename FROM activity WHERE player_id = :p
                     AND strftime('%F', start_date) = strftime('%F', :d)""")
                 for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
-                    if row.power_zones:
-                        zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
+                    zones = [a + b for a, b in zip(zones, load_power_zones(current_user.player_id, row, profile.ftp))]
                 total = sum(zones)
                 if total:
                     for i in range(0, 7):

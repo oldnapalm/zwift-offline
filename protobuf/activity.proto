@@ -154,12 +154,12 @@ message Activity {  //where is primaryImageUrl, feedImageThumbnailUrl, activityR
 	optional int64 movingTimeInMs = 40;
 	//repeated ClubAttribution cas = 41;
 	//optional PacePartnerData pp_data = 42;
-	//optional int32 f43 = 43; // always 0
+	//optional int64 f43 = 43; // always 0
 	optional float work = 44;
 	optional float tss = 45;
 	optional float normalized_power = 46;
 	//optional int32 f47 = 47; // always -120
-	repeated int32 power_zones = 48;
+	repeated uint32 power_zones = 48;
 }
 
 message ActivityList {
