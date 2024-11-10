@@ -3721,26 +3721,12 @@ def save_power_zones(player_id, activity_id, data):
     with open('%s/%s' % (power_zones_dir, activity_id), 'w') as f:
         json.dump(data, f)
 
-def load_power_zones(player_id, activity, ftp):
-    power_zones_file = '%s/%s/power_zones/%s' % (STORAGE_DIR, player_id, activity.id)
+def load_power_zones(player_id, activity_id):
+    power_zones_file = '%s/%s/power_zones/%s' % (STORAGE_DIR, player_id, activity_id)
     if os.path.isfile(power_zones_file):
         with open(power_zones_file) as f:
             return json.load(f)
-    zones = [0, 0, 0, 0, 0, 0, 0]
-    limits = [ftp * 0.6, ftp * 0.76, ftp * 0.9, ftp * 1.05, ftp * 1.19, None]
-    fit_file = '%s/%s/fit/%s - %s' % (STORAGE_DIR, player_id, activity.id, activity.fit_filename)
-    if os.path.isfile(fit_file):
-        with fitdecode.FitReader(fit_file) as fit:
-            for frame in fit:
-                if frame.frame_type == fitdecode.FIT_FRAME_DATA and frame.name == 'record':
-                    p = frame.get_value('power')
-                    if p != None:
-                        for i in range(0, 6):
-                            if limits[i] == None or p < limits[i]:
-                                zones[i] += 1
-                                break
-        save_power_zones(player_id, activity.id, zones)
-    return zones
+    return [0] * 7
 
 @app.route('/api/fitness/metrics-and-goals', methods=['GET'])
 @jwt_to_session_cookie
@@ -3765,7 +3751,7 @@ def api_fitness_metrics_and_goals():
         week.work = int(row[2]) if row[2] else 0
         week.tss = row[3] if row[3] else 0
         for i in range(0, 7):
-            zones = [0, 0, 0, 0, 0, 0, 0]
+            zones = [0] * 7
             day = start + datetime.timedelta(days=i)
             stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories), SUM(work), SUM(tss)
                 FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
@@ -3777,10 +3763,10 @@ def api_fitness_metrics_and_goals():
                 d.calories = int(row[1]) if row[1] else 0
                 d.work = int(row[2]) if row[2] else 0
                 d.tss = row[3] if row[3] else 0
-                stmt = sqlalchemy.text("""SELECT id, fit_filename FROM activity WHERE player_id = :p
+                stmt = sqlalchemy.text("""SELECT id FROM activity WHERE player_id = :p
                     AND strftime('%F', start_date) = strftime('%F', :d)""")
                 for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
-                    zones = [a + b for a, b in zip(zones, load_power_zones(current_user.player_id, row, profile.ftp))]
+                    zones = [a + b for a, b in zip(zones, load_power_zones(current_user.player_id, row.id))]
                 total = sum(zones)
                 if total:
                     for i in range(0, 7):
