@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 from functools import wraps
 from io import BytesIO
-from shutil import copyfile, rmtree
+from shutil import copyfile
 from urllib.parse import quote
 from flask import Flask, request, jsonify, redirect, render_template, url_for, flash, session, make_response, send_file, send_from_directory
 from flask_login import UserMixin, AnonymousUserMixin, LoginManager, login_user, current_user, login_required, logout_user
@@ -132,6 +132,12 @@ if not os.path.exists(CREDENTIALS_KEY_FILE):
         f.write(get_random_bytes(32))
 with open(CREDENTIALS_KEY_FILE, 'rb') as f:
     credentials_key = f.read()
+
+GARMIN_DOMAIN = 'garmin.com'
+GARMIN_DOMAIN_FILE = '%s/garmin_domain.txt' % STORAGE_DIR
+if os.path.exists(GARMIN_DOMAIN_FILE):
+    with open(GARMIN_DOMAIN_FILE) as f:
+        GARMIN_DOMAIN = f.readline().rstrip('\r\n')
 
 import warnings
 with warnings.catch_warnings():
@@ -897,15 +903,30 @@ def profile(username):
 @login_required
 def garmin(username):
     file = '%s/%s/garmin_credentials.bin' % (STORAGE_DIR, current_user.player_id)
+    token = os.path.isfile('%s/%s/garth/oauth1_token.json' % (STORAGE_DIR, current_user.player_id))
     if request.method == "POST":
         if request.form['username'] == "" or request.form['password'] == "":
             flash("Garmin credentials can't be empty.")
-            return render_template("garmin.html", username=current_user.username)
+            return render_template("garmin.html", username=current_user.username, token=token)
         encrypt_credentials(file, (request.form['username'], request.form['password']))
-        rmtree('%s/%s/garth' % (STORAGE_DIR, current_user.player_id), ignore_errors=True)
-        return redirect(url_for('settings', username=current_user.username))
     cred = decrypt_credentials(file)
-    return render_template("garmin.html", username=current_user.username, uname=cred[0], passw=cred[1])
+    return render_template("garmin.html", username=current_user.username, uname=cred[0], passw=cred[1], token=token)
+
+
+@app.route("/garmin_auth", methods=['GET'])
+@login_required
+def garmin_auth():
+    try:
+        import garth
+        garth.configure(domain=GARMIN_DOMAIN)
+        username, password = decrypt_credentials('%s/%s/garmin_credentials.bin' % (STORAGE_DIR, current_user.player_id))
+        garth.login(username, password)
+        garth.save('%s/%s/garth' % (STORAGE_DIR, current_user.player_id))
+        flash("Garmin authorized.")
+    except Exception as exc:
+        logger.warning('garmin_auth: %s' % repr(exc))
+        flash("Garmin authorization failed.")
+    return redirect(url_for('garmin', username=current_user.username))
 
 
 @app.route("/intervals/<username>/", methods=["GET", "POST"])
@@ -1051,18 +1072,21 @@ def download_avatarLarge(player_id):
     else:
         return '', 404
 
-@app.route("/delete/<filename>", methods=["GET"])
+@app.route("/delete/<path:filename>", methods=["GET"])
 @login_required
 def delete(filename):
-    credentials = ['garmin_credentials.bin', 'zwift_credentials.bin', 'intervals_credentials.bin']
+    credentials = ['zwift_credentials.bin', 'intervals_credentials.bin']
     strava = ['strava_api.bin', 'strava_token.txt']
-    if filename not in ['profile.bin', 'achievements.bin'] + credentials + strava:
+    garmin = ['garmin_credentials.bin', 'garth/oauth1_token.json']
+    if filename not in ['profile.bin', 'achievements.bin'] + credentials + strava + garmin:
         return '', 403
     delete_file = os.path.join(STORAGE_DIR, str(current_user.player_id), filename)
     if os.path.isfile(delete_file):
-        os.remove("%s" % delete_file)
+        os.remove(delete_file)
     if filename in strava:
         return redirect(url_for('strava', username=current_user.username))
+    if filename in garmin:
+        return redirect(url_for('garmin', username=current_user.username))
     if filename in credentials:
         flash("Credentials removed.")
     return redirect(url_for('settings', username=current_user.username))
@@ -1762,7 +1786,7 @@ def update_entitlements(profile):
     e.id = -1
     e.status = profile_pb2.ProfileEntitlement.ProfileEntitlementStatus.ACTIVE
     if os.path.isfile('%s/unlock_entitlements.txt' % STORAGE_DIR) or os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
-        entitlements = list(range(1687, 1848))
+        entitlements = list(range(1687, 1853))
         if os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
             entitlements.extend(list(range(1, 1687)))
         for entitlement in entitlements:
@@ -2245,37 +2269,19 @@ def garmin_upload(player_id, activity):
     except ImportError as exc:
         logger.warning("garth is not installed. Skipping Garmin upload attempt: %s" % repr(exc))
         return
-    profile_dir = '%s/%s' % (STORAGE_DIR, player_id)
-    garmin_credentials = '%s/garmin_credentials' % profile_dir
-    if os.path.exists(garmin_credentials + '.bin'):
-        garmin_credentials += '.bin'
-    elif os.path.exists(garmin_credentials + '.txt'):
-        garmin_credentials += '.txt'
-    else:
-        logger.info("garmin_credentials missing, skip Garmin activity update")
-        return
-    if garmin_credentials.endswith('.bin'):
-        username, password = decrypt_credentials(garmin_credentials)
-    else:
-        try:
-            with open(garmin_credentials) as f:
-                username = f.readline().rstrip('\r\n')
-                password = f.readline().rstrip('\r\n')
-        except Exception as exc:
-            logger.warning("Failed to read %s. Skipping Garmin upload attempt: %s" % (garmin_credentials, repr(exc)))
-            return
-    garmin_domain = '%s/garmin_domain.txt' % STORAGE_DIR
-    if os.path.exists(garmin_domain):
-        try:
-            with open(garmin_domain) as f:
-                garth.configure(domain=f.readline().rstrip('\r\n'))
-        except Exception as exc:
-            logger.warning("Failed to read %s: %s" % (garmin_domain, repr(exc)))
-    tokens_dir = '%s/garth' % profile_dir
+    garth.configure(domain=GARMIN_DOMAIN)
+    tokens_dir = '%s/%s/garth' % (STORAGE_DIR, player_id)
     try:
         garth.resume(tokens_dir)
-        garth.client.username
+        if garth.client.oauth2_token.expired:
+            garth.client.refresh_oauth2()
+            garth.save(tokens_dir)
     except:
+        garmin_credentials = '%s/%s/garmin_credentials.bin' % (STORAGE_DIR, player_id)
+        if not os.path.exists(garmin_credentials):
+            logger.info("garmin_credentials.bin missing, skip Garmin activity update")
+            return
+        username, password = decrypt_credentials(garmin_credentials)
         try:
             garth.login(username, password)
             garth.save(tokens_dir)
@@ -2283,7 +2289,9 @@ def garmin_upload(player_id, activity):
             logger.warning("Garmin login failed: %s" % repr(exc))
             return
     try:
-        garth.client.post("connectapi", "/upload-service/upload", api=True, files={"file": (activity.fit_filename, BytesIO(activity.fit))})
+        requests.post('https://connectapi.%s/upload-service/upload' % GARMIN_DOMAIN,
+            files={"file": (activity.fit_filename, BytesIO(activity.fit))},
+            headers={'authorization': str(garth.client.oauth2_token)})
     except Exception as exc:
         logger.warning("Garmin upload failed. No internet? %s" % repr(exc))
 
@@ -3708,16 +3716,22 @@ def api_player_profile_user_game_storage_attributes():
     if request.method == 'POST':
         new = user_storage_pb2.UserStorage()
         new.ParseFromString(request.stream.read())
-        user_storage.MergeFrom(new)
+        for n in new.attributes:
+            for f in n.DESCRIPTOR.fields_by_name:
+                if n.HasField(f):
+                    for a in list(user_storage.attributes):
+                        if a.HasField(f) and (not 'signature' in getattr(a, f).DESCRIPTOR.fields_by_name \
+                          or getattr(a, f).signature == getattr(n, f).signature):
+                            user_storage.attributes.remove(a)
+            user_storage.attributes.add().CopyFrom(n)
         with open(user_storage_file, 'wb') as f:
             f.write(user_storage.SerializeToString())
         return '', 202
     ret = user_storage_pb2.UserStorage()
-    n = int(request.args.get('n'))
-    if n in user_storage.attributes.DESCRIPTOR.fields_by_number:
-        field = user_storage.attributes.DESCRIPTOR.fields_by_number[n].name
-        if user_storage.attributes.HasField(field):
-            getattr(ret.attributes, field).CopyFrom(getattr(user_storage.attributes, field))
+    for n in request.args.getlist('n'):
+        for a in user_storage.attributes:
+            if int(n) in a.DESCRIPTOR.fields_by_number and a.HasField(a.DESCRIPTOR.fields_by_number[int(n)].name):
+                ret.attributes.add().CopyFrom(a)
     return ret.SerializeToString(), 200
 
 
