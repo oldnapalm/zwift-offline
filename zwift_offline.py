@@ -154,7 +154,7 @@ if not os.path.exists(SECRET_KEY_FILE):
         f.write(os.urandom(16))
 with open(SECRET_KEY_FILE, 'rb') as f:
     app.config['SECRET_KEY'] = f.read()
-app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # A typical .fit file with power, cadence, and heartrate data recorded in December 2024 is approximately 1.3 MB / 4 hours.
 db = SQLAlchemy()
 db.init_app(app)
 
@@ -1786,7 +1786,7 @@ def update_entitlements(profile):
     e.id = -1
     e.status = profile_pb2.ProfileEntitlement.ProfileEntitlementStatus.ACTIVE
     if os.path.isfile('%s/unlock_entitlements.txt' % STORAGE_DIR) or os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
-        entitlements = list(range(1687, 1853))
+        entitlements = list(range(1687, 1861))
         if os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
             entitlements.extend(list(range(1, 1687)))
         for entitlement in entitlements:
