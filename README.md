@@ -53,8 +53,8 @@ zoffline can be installed on the same machine as Zwift or another local machine.
  
 * Install Docker
 * Create the docker container with:<br>
-  ``docker create --name zwift-offline -p 443:443 -p 80:80 -p 3024:3024/udp -p 3025:3025 -p 53:53/udp -v </path/to/host/storage>:/opt/zwift-offline/storage -e TZ=<timezone> zoffline/zoffline``
-  * You can optionally exclude ``-v </path/to/host/storage>:/opt/zwift-offline/storage`` if you don't care if your Zwift progress state is retained across zoffline updates (unlikely).
+  ``docker create --name zwift-offline -p 443:443 -p 80:80 -p 3024:3024/udp -p 3025:3025 -p 53:53/udp -v </path/to/host/storage>:/usr/src/app/zwift-offline/storage -e TZ=<timezone> zoffline/zoffline``
+  * You can optionally exclude ``-v </path/to/host/storage>:/usr/src/app/zwift-offline/storage`` if you don't care if your Zwift progress state is retained across zoffline updates (unlikely).
   * The path you pass to ``-v`` will likely need to be world readable and writable.
   * A list of valid ``<timezone>`` values (e.g. America/New_York) can be found [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
   * Adding ``--restart unless-stopped`` will make zoffline start on boot if you have Docker v1.9.0 or greater.
@@ -76,7 +76,7 @@ zoffline can be installed on the same machine as Zwift or another local machine.
           environment:
               - TZ=Europe/London
           volumes:
-              - ./storage/:/opt/zwift-offline/storage
+              - ./storage/:/usr/src/app/zwift-offline/storage
           ports:
               - 80:80
               - 443:443
