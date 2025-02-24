@@ -4,8 +4,8 @@ LABEL maintainer="zoffline <zoffline@tutanota.com>"
 WORKDIR /usr/src/app/zwift-offline
 COPY . .
 
-RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip3 install --no-cache-dir garth
+RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
+RUN pip install --no-cache-dir --root-user-action=ignore garth
 
 RUN chmod 777 storage
 
