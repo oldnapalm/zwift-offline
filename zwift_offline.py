@@ -396,6 +396,7 @@ class PartialProfile:
     male = True
     weight_in_grams = 0
     imageSrc = ''
+    time = 0
     def to_json(self):
         return {"countryCode": self.country_code,
                 "enrolledZwiftAcademy": False, #don't need
@@ -486,6 +487,10 @@ def get_partial_profile(player_id):
         partial_profile.player_id = player_id
         if player_id in global_pace_partners.keys():
             profile = global_pace_partners[player_id].profile
+            for f in profile.public_attributes:
+                if f.id == 1766985504: #crc32 of "PACE PARTNER - ROUTE"
+                    partial_profile.route = toSigned(f.number_value, 4) if f.number_value >= 0 else -toSigned(-f.number_value, 4)
+                    break
         elif player_id in global_bots.keys():
             profile = global_bots[player_id].profile
         elif player_id > 10000000:
@@ -514,15 +519,8 @@ def get_partial_profile(player_id):
         partial_profile.player_type = profile_pb2.PlayerType.Name(jsf(profile, 'player_type', 1))
         partial_profile.male = profile.is_male
         partial_profile.weight_in_grams = profile.weight_in_grams
-        for f in profile.public_attributes:
-            #0x69520F20=1766985504 - crc32 of "PACE PARTNER - ROUTE"
-            if f.id == 1766985504:
-                if f.number_value >= 0:
-                    partial_profile.route = toSigned(f.number_value, 4)
-                else:
-                    partial_profile.route = -toSigned(-f.number_value, 4)
-                break
         player_partial_profiles[player_id] = partial_profile
+    player_partial_profiles[player_id].time = time.monotonic()
     return player_partial_profiles[player_id]
 
 
@@ -1375,6 +1373,7 @@ def api_users_login():
     req.ParseFromString(request.stream.read())
     player_id = current_user.player_id
     global_relay[player_id] = Relay(req.key)
+    ghosts_enabled[player_id] = current_user.enable_ghosts
 
     response = login_pb2.LoginResponse()
     response.session_state = 'abc'
@@ -1431,31 +1430,20 @@ def relay_session_refresh():
     return refresh.SerializeToString(), 200
 
 
-def save_bookmark(state, name):
-    bookmarks_dir = os.path.join(STORAGE_DIR, str(state.id), 'bookmarks', str(get_course(state)), str(state.sport))
-    if not make_dir(bookmarks_dir):
-        return
-    with open(os.path.join(bookmarks_dir, name + '.bin'), 'wb') as f:
-        f.write(state.SerializeToString())
-
 def logout_player(player_id):
-    #Remove player from online when leaving game/world
-    if player_id in online:
-        activity = 'run' if online[player_id].sport == profile_pb2.Sport.RUNNING else 'ride'
-        save_bookmark(online[player_id], 'Last ' + activity)
-        online.pop(player_id)
-        discord.change_presence(len(online))
     if player_id in global_ghosts:
         del global_ghosts[player_id].rec.states[:]
         global_ghosts[player_id].play.clear()
         global_ghosts.pop(player_id)
-    if player_id in player_partial_profiles:
-        player_partial_profiles.pop(player_id)
+    if player_id in global_bookmarks:
+        global_bookmarks[player_id].clear()
+        global_bookmarks.pop(player_id)
 
 @app.route('/api/users/logout', methods=['POST'])
 @jwt_to_session_cookie
 @login_required
 def api_users_logout():
+    logout_player(current_user.player_id)
     return '', 204
 
 
@@ -1786,9 +1774,10 @@ def update_entitlements(profile):
     e.id = -1
     e.status = profile_pb2.ProfileEntitlement.ProfileEntitlementStatus.ACTIVE
     if os.path.isfile('%s/unlock_entitlements.txt' % STORAGE_DIR) or os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
-        entitlements = list(range(1687, 1871))
+        ent = json.load(open('%s/data/entitlements.txt' % SCRIPT_DIR))
+        entitlements = list(range(ent['first'], ent['last'] + 1))
         if os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
-            entitlements.extend(list(range(1, 1687)))
+            entitlements.extend(list(range(1, ent['first'])))
         for entitlement in entitlements:
             if not any(e.id == entitlement for e in profile.entitlements):
                 e = profile.entitlements.add()
@@ -2430,11 +2419,6 @@ def api_profiles_activities_id(player_id, activity_id):
 
     response = '{"id":%s}' % activity_id
     if request.args.get('upload-to-strava') != 'true':
-        return response, 200
-    if activity.distanceInMeters < 300:
-        Activity.query.filter_by(id=activity_id).delete()
-        db.session.commit()
-        logout_player(player_id)
         return response, 200
 
     create_power_curve(player_id, BytesIO(activity.fit))
@@ -3287,7 +3271,7 @@ def relay_worlds_id_players_id(server_realm, player_id):
     if player_id in global_bots.keys():
         bot = global_bots[player_id]
         return bot.route.states[bot.position].SerializeToString()
-    return ""
+    return '', 404
 
 
 @app.route('/relay/worlds/hash-seeds', methods=['GET'])
@@ -3300,6 +3284,13 @@ def relay_worlds_hash_seeds():
         seed.expiryDate = world_time()+(10800+x*1200)*1000
     return seeds.SerializeToString(), 200
 
+
+def save_bookmark(state, name):
+    bookmarks_dir = os.path.join(STORAGE_DIR, str(state.id), 'bookmarks', str(get_course(state)), str(state.sport))
+    if not make_dir(bookmarks_dir):
+        return
+    with open(os.path.join(bookmarks_dir, name + '.bin'), 'wb') as f:
+        f.write(state.SerializeToString())
 
 @app.route('/relay/worlds/attributes', methods=['POST'])
 @jwt_to_session_cookie
@@ -3602,17 +3593,20 @@ def relay_worlds_leave(server_realm):
     return '{"worldtime":%ld}' % world_time()
 
 
-@app.route('/experimentation/v1/variant', methods=['POST'])
-@app.route('/experimentation/v1/machine-id-variant', methods=['POST'])
-def experimentation_v1_variant():
-    req = variants_pb2.FeatureRequest()
-    req.ParseFromString(request.stream.read())
+def load_variants(file):
+    vs = variants_pb2.FeatureResponse()
+    try:
+        Parse(open(file).read(), vs)
+    except Exception as exc:
+        logging.warning("load_variants: %s" % repr(exc))
     variants = {}
-    with open(os.path.join(SCRIPT_DIR, "data", "variants.txt")) as f:
-        vs = variants_pb2.FeatureResponse()
-        Parse(f.read(), vs)
-        for v in vs.variants:
-            variants[v.name] = v
+    for v in vs.variants:
+        variants[v.name] = v
+    return variants
+
+def create_variants_response(request, variants):
+    req = variants_pb2.FeatureRequest()
+    req.ParseFromString(request)
     response = variants_pb2.FeatureResponse()
     for params in req.params:
         for param in params.param:
@@ -3621,6 +3615,21 @@ def experimentation_v1_variant():
             else:
                 logger.info("Unknown feature: " + param)
     return response.SerializeToString(), 200
+
+@app.route('/experimentation/v1/variant', methods=['POST'])
+@jwt_to_session_cookie
+@login_required
+def experimentation_v1_variant():
+    variants = load_variants(os.path.join(SCRIPT_DIR, "data", "variants.txt"))
+    override = os.path.join(STORAGE_DIR, str(current_user.player_id), "variants.txt")
+    if os.path.isfile(override):
+        variants.update(load_variants(override))
+    return create_variants_response(request.stream.read(), variants)
+
+@app.route('/experimentation/v1/machine-id-variant', methods=['POST'])
+def experimentation_v1_machine_id_variant():
+    variants = load_variants(os.path.join(SCRIPT_DIR, "data", "variants.txt"))
+    return create_variants_response(request.stream.read(), variants)
 
 def get_profile_saved_game_achiev2_40_bytes():
     profile_file = '%s/%s/profile.bin' % (STORAGE_DIR, current_user.player_id)
@@ -3940,6 +3949,13 @@ def send_server_back_online_message():
     send_message(message)
     discord.send_message(message)
 
+def remove_inactive():
+    while True:
+        for p_id in list(player_partial_profiles.keys()):
+            if time.monotonic() > player_partial_profiles[p_id].time + 3600:
+                player_partial_profiles.pop(p_id)
+        time.sleep(600)
+
 
 with app.app_context():
     db.create_all()
@@ -4046,13 +4062,10 @@ def auth_realms_zwift_protocol_openid_connect_token():
             else:
                 return '', 401
         else:  # android login
-            current_user.enable_ghosts = user.enable_ghosts
-            ghosts_enabled[current_user.player_id] = current_user.enable_ghosts
             from flask_login import encode_cookie
             # cookie is not set in request since we just logged in so create it.
             return jsonify(fake_jwt_with_session_cookie(encode_cookie(str(session['_user_id'])))), 200
     else:
-        ghosts_enabled[AnonUser.player_id] = AnonUser.enable_ghosts # to work also on Android
         r = make_response(FAKE_JWT)
         r.mimetype = 'application/json'
         return r
@@ -4077,7 +4090,6 @@ def start_zwift():
     if MULTIPLAYER:
         current_user.enable_ghosts = 'enableghosts' in request.form.keys()
         db.session.commit()
-        ghosts_enabled[current_user.player_id] = current_user.enable_ghosts
     else:
         AnonUser.enable_ghosts = 'enableghosts' in request.form.keys()
         save_option(AnonUser.enable_ghosts, ENABLEGHOSTS_FILE)
@@ -4136,6 +4148,8 @@ def run_standalone(passed_online, passed_global_relay, passed_global_pace_partne
 
     send_message_thread = threading.Thread(target=send_server_back_online_message)
     send_message_thread.start()
+    remove_inactive_thread = threading.Thread(target=remove_inactive)
+    remove_inactive_thread.start()
     logger.info("Server version %s is running." % ZWIFT_VER_CUR)
     server = WSGIServer(('0.0.0.0', 443), app, certfile='%s/cert-zwift-com.pem' % SSL_DIR, keyfile='%s/key-zwift-com.pem' % SSL_DIR, log=logger)
     server.serve_forever()

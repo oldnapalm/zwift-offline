@@ -84,7 +84,7 @@
     "road": "10038"
   },
   {
-    "name": "Hardknott Pass (3.6 km / 275 m)",
+    "name": "Hardknott Pass (2.7 km / 306 m)",
     "road": "10040"
   },
   {
@@ -142,6 +142,10 @@
   {
     "name": "Pla d'Adet (12.1 km / 847 m)",
     "road": "10027"
+  },
+  {
+    "name": "Poggio (4.3 km / 136 m)",
+    "road": "10041"
   },
   {
     "name": "Puy de Dome (13 km / 913 m)",
