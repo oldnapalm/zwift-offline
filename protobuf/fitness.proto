@@ -18,6 +18,7 @@ message WeekMetrics {
     optional uint32 calories = 7;
     optional float tss = 8;
     repeated DayMetrics days = 9;
+    optional string status = 10;
 }
 
 message DayMetrics {
@@ -46,4 +47,16 @@ message GoalSetting {
     optional uint32 f1 = 1;
     optional uint32 f2 = 2;
     optional uint32 f3 = 3;
+}
+
+message Streaks {
+    optional uint32 cur_streak = 1;
+    optional uint32 cur_distance = 2;
+    optional uint32 cur_elevation = 3;
+    optional uint32 cur_calories = 4;
+    optional uint32 max_streak = 5;
+    optional uint32 max_distance = 6;
+    optional uint32 max_elevation = 7;
+    optional uint32 max_calories = 8;
+    repeated uint64 last_ride = 9;
 }

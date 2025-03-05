@@ -195,8 +195,8 @@ message PlayerProfile {
 	optional ActivityPrivacyType default_activity_privacy = 125;
 	optional bool connected_to_runtastic = 126;
 	repeated PropertyChange property_changes = 127;
-	optional uint32 current_streak = 131;
-	optional uint32 best_streak = 132;
+	optional uint32 cur_streak = 131;
+	optional uint32 max_streak = 132;
 }
 
 message PlayerProfiles {

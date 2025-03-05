@@ -160,6 +160,7 @@ message Activity {  //where is primaryImageUrl, feedImageThumbnailUrl, activityR
 	optional float normalized_power = 46;
 	//optional int32 f47 = 47; // always -120
 	repeated uint32 power_zones = 48;
+	//optional float f49 = 49;
 }
 
 message ActivityList {
