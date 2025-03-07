@@ -38,7 +38,8 @@ message PowerZonePercentages {
 }
 
 message SportGoals {
-    optional GoalSetting goal_setting = 1;
+    optional GoalSetting riding_goals = 1; // ?
+    optional GoalSetting running_goals = 2; // ?
     optional uint32 f4 = 4;
     optional uint64 last_updated = 5;
 }
@@ -47,6 +48,8 @@ message GoalSetting {
     optional uint32 f1 = 1;
     optional uint32 f2 = 2;
     optional uint32 f3 = 3;
+    optional uint32 f4 = 4;
+    optional uint32 f5 = 5;
 }
 
 message Streaks {
