@@ -220,7 +220,7 @@ message PlayerProfile {
 	optional float max_streak_calories_float = 151;
 	optional uint32 f153 = 153;
 	optional string f154 = 154; // uuid
-	optional float f155 = 155;
+	optional float power_units = 155; // factory tour challenge
 }
 
 message PlayerProfiles {
