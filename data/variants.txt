@@ -39,6 +39,9 @@
           },
           "is_fitness_score_visible": {
             "boolValue": true
+          },
+          "is_light_theme": {
+            "boolValue": true
           }
         }
       }
@@ -1379,13 +1382,14 @@
     },
     {
       "name": "game_1_83_streaks_backend_migration",
+      "value": true,
       "values": {
         "fields": {
           "ContinueToUpdatePlayerProfileWithStreaks": {
             "boolValue": true
           },
           "GetUserStreaksDataFromBackend": {
-            "boolValue": false
+            "boolValue": true
           },
           "IgnoreNonQualifyingAndDeletedActivities": {
             "boolValue": true
