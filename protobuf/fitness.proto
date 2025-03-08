@@ -51,15 +51,3 @@ message GoalSetting {
     optional uint32 f4 = 4;
     optional uint32 f5 = 5;
 }
-
-message Streaks {
-    optional uint32 cur_streak = 1;
-    optional uint32 cur_ride_streak_distance = 2;
-    optional uint32 cur_ride_streak_elevation = 3;
-    optional uint32 cur_ride_streak_calories = 4;
-    optional uint32 max_streak = 5;
-    optional uint32 max_ride_streak_distance = 6;
-    optional uint32 max_ride_streak_elevation = 7;
-    optional uint32 max_ride_streak_calories = 8;
-    optional uint64 week_end = 9;
-}

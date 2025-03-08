@@ -3826,7 +3826,7 @@ def get_streaks(player_id):
                 profile.ParseFromString(f.read())
             for field in ['cur_streak', 'cur_ride_streak_distance', 'cur_ride_streak_elevation', 'cur_ride_streak_calories',
               'max_streak', 'max_ride_streak_distance', 'max_ride_streak_elevation', 'max_ride_streak_calories']:
-                setattr(streaks, field, getattr(profile, field))
+                setattr(streaks, field, int(getattr(profile, field)))
             streaks.week_end = int(get_week_range(datetime.datetime.fromtimestamp(profile.last_ride))[1].timestamp() * 1000)
             with open(streaks_file, 'wb') as f:
                 f.write(streaks.SerializeToString())

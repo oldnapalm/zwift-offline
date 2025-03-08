@@ -202,22 +202,22 @@ message PlayerProfile {
 	optional uint32 max_streak = 132;
 	optional uint64 last_ride = 133;
 	optional uint32 week_ride_count = 134;
-	optional uint32 cur_ride_streak_distance = 135;
-	optional uint32 max_ride_streak_distance = 136;
-	optional uint32 cur_ride_streak_elevation = 137;
-	optional uint32 max_ride_streak_elevation = 138;
-	optional uint32 cur_ride_streak_calories = 139;
-	optional uint32 max_ride_streak_calories = 140;
+	//optional uint32 cur_ride_streak_distance = 135;
+	//optional uint32 max_ride_streak_distance = 136;
+	//optional uint32 cur_ride_streak_elevation = 137;
+	//optional uint32 max_ride_streak_elevation = 138;
+	//optional uint32 cur_ride_streak_calories = 139;
+	//optional uint32 max_ride_streak_calories = 140;
 	optional uint32 cur_ride_streak_xp = 141;
 	optional uint32 max_ride_streak_xp = 142;
 	optional uint32 cur_ride_streak_drops = 143;
 	optional uint32 max_ride_streak_drops = 144;
-	optional float cur_ride_streak_distance_float = 146;
-	optional float cur_ride_streak_elevation_float = 147;
-	optional float cur_ride_streak_calories_float = 148;
-	optional float max_ride_streak_distance_float = 149;
-	optional float max_ride_streak_elevation_float = 150;
-	optional float max_ride_streak_calories_float = 151;
+	optional float cur_ride_streak_distance = 146;
+	optional float cur_ride_streak_elevation = 147;
+	optional float cur_ride_streak_calories = 148;
+	optional float max_ride_streak_distance = 149;
+	optional float max_ride_streak_elevation = 150;
+	optional float max_ride_streak_calories = 151;
 	optional uint32 f153 = 153;
 	optional string f154 = 154; // uuid
 	optional float power_units = 155; // factory tour challenge
@@ -368,4 +368,16 @@ message BestEffortPointMsg {
 message PowerCurveAggregationMsg {
 	map<string, BestEffortPointMsg> watts = 1;
 	map<string, BestEffortPointMsg> watts_per_kg = 2;
+}
+
+message Streaks {
+	optional uint32 cur_streak = 1;
+	optional uint32 cur_ride_streak_distance = 2;
+	optional uint32 cur_ride_streak_elevation = 3;
+	optional uint32 cur_ride_streak_calories = 4;
+	optional uint32 max_streak = 5;
+	optional uint32 max_ride_streak_distance = 6;
+	optional uint32 max_ride_streak_elevation = 7;
+	optional uint32 max_ride_streak_calories = 8;
+	optional uint64 week_end = 9;
 }
