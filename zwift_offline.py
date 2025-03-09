@@ -258,6 +258,7 @@ class Activity(db.Model):
     tss = db.Column(db.Float)
     normalized_power = db.Column(db.Float)
     power_zones = db.Column(db.Text)
+    power_units = db.Column(db.Float)
 
 class SegmentResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -3777,7 +3778,7 @@ def api_fitness_metrics_and_goals():
     for i, week in enumerate([fitness.this_week, fitness.last_week]):
         start, end = get_week_range(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=i * 7))
         week.start = start.strftime('%Y-%m-%d')
-        stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories), SUM(work), SUM(tss)
+        stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories), SUM(work), SUM(tss), SUM(power_units)
             FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s)
             AND strftime('%s', start_date) <= strftime('%s', :e)""")
         row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
@@ -3785,6 +3786,7 @@ def api_fitness_metrics_and_goals():
         week.calories = int(row[1]) if row[1] else 0
         week.work = int(row[2]) if row[2] else 0
         week.tss = row[3] if row[3] else 0
+        week.power_units = row[4] if row[4] else 0
         for i in range(0, 7):
             zones = [0] * 7
             day = start + datetime.timedelta(days=i)
@@ -3813,7 +3815,7 @@ def api_fitness_metrics_and_goals():
     return fitness.SerializeToString(), 200
 
 def get_streaks(player_id):
-    streaks = fitness_pb2.Streaks()
+    streaks = profile_pb2.Streaks()
     streaks_file = '%s/%s/streaks.bin' % (STORAGE_DIR, player_id)
     if os.path.isfile(streaks_file):
         with open(streaks_file, 'rb') as f:

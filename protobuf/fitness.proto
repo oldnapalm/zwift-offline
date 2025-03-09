@@ -10,7 +10,7 @@ message Fitness {
 
 message WeekMetrics {
     optional string start = 1;
-    optional float f2 = 2;
+    optional float power_units = 2;
     optional uint32 distance = 3;
     optional uint32 f4 = 4;
     optional uint32 f5 = 5;
