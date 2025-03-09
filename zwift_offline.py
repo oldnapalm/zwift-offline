@@ -3778,30 +3778,32 @@ def api_fitness_metrics_and_goals():
     for i, week in enumerate([fitness.this_week, fitness.last_week]):
         start, end = get_week_range(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=i * 7))
         week.start = start.strftime('%Y-%m-%d')
-        stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories), SUM(work), SUM(tss), SUM(power_units)
-            FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s)
-            AND strftime('%s', start_date) <= strftime('%s', :e)""")
+        stmt = sqlalchemy.text("""SELECT SUM(power_units), SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
+            FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
         row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
-        week.distance = int(row[0]) if row[0] else 0
-        week.calories = int(row[1]) if row[1] else 0
-        week.work = int(row[2]) if row[2] else 0
-        week.tss = row[3] if row[3] else 0
-        week.power_units = row[4] if row[4] else 0
+        week.power_units = row[0] if row[0] else 0
+        week.distance = int(row[1]) if row[1] else 0
+        week.elevation = int(row[2]) if row[2] else 0
+        week.moving_time = int(row[3]) if row[3] else 0
+        week.work = int(row[4]) if row[4] else 0
+        week.calories = int(row[5]) if row[5] else 0
+        week.tss = row[6] if row[6] else 0
         for i in range(0, 7):
             zones = [0] * 7
             day = start + datetime.timedelta(days=i)
-            stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(calories), SUM(work), SUM(tss)
+            stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
                 FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
             row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
             if row[0]:
                 d = week.days.add()
                 d.day = day.strftime('%a').lower()
                 d.distance = int(row[0])
-                d.calories = int(row[1]) if row[1] else 0
-                d.work = int(row[2]) if row[2] else 0
-                d.tss = row[3] if row[3] else 0
-                stmt = sqlalchemy.text("""SELECT power_zones FROM activity WHERE player_id = :p
-                    AND strftime('%F', start_date) = strftime('%F', :d)""")
+                d.elevation = int(row[1]) if row[1] else 0
+                d.moving_time = int(row[2]) if row[2] else 0
+                d.work = int(row[3]) if row[3] else 0
+                d.calories = int(row[4]) if row[4] else 0
+                d.tss = row[5] if row[5] else 0
+                stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
                 for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
                     if row.power_zones:
                         zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]

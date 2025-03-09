@@ -12,8 +12,8 @@ message WeekMetrics {
     optional string start = 1;
     optional float power_units = 2;
     optional uint32 distance = 3;
-    optional uint32 f4 = 4;
-    optional uint32 f5 = 5;
+    optional uint32 elevation = 4;
+    optional uint32 moving_time = 5;
     optional uint32 work = 6;
     optional uint32 calories = 7;
     optional float tss = 8;
@@ -24,8 +24,8 @@ message WeekMetrics {
 message DayMetrics {
     optional string day = 1;
     optional uint32 distance = 2;
-    optional uint32 f3 = 3;
-    optional uint32 f4 = 4;
+    optional uint32 elevation = 3;
+    optional uint32 moving_time = 4;
     optional uint32 work = 5;
     optional uint32 calories = 6;
     optional float tss = 7;
