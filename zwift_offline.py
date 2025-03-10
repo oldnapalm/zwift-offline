@@ -2392,27 +2392,6 @@ def save_ghost(player_id, name):
         with open(f, 'wb') as fd:
             fd.write(ghosts.rec.SerializeToString())
 
-def update_streaks(player_id, activity):
-    streaks = get_streaks(player_id)
-    start_date = stime_to_timestamp(activity.start_date) * 1000
-    if start_date > streaks.week_end + 604800000:
-        streaks.cur_streak = 1
-        streaks.cur_ride_streak_distance = 0
-        streaks.cur_ride_streak_elevation = 0
-        streaks.cur_ride_streak_calories = 0
-    elif start_date > streaks.week_end:
-        streaks.cur_streak += 1
-    streaks.cur_ride_streak_distance += int(activity.distanceInMeters)
-    streaks.cur_ride_streak_elevation += int(activity.total_elevation)
-    streaks.cur_ride_streak_calories += int(activity.calories)
-    streaks.max_streak = max(streaks.cur_streak, streaks.max_streak)
-    streaks.max_ride_streak_distance = max(streaks.cur_ride_streak_distance, streaks.max_ride_streak_distance)
-    streaks.max_ride_streak_elevation = max(streaks.cur_ride_streak_elevation, streaks.max_ride_streak_elevation)
-    streaks.max_ride_streak_calories = max(streaks.cur_ride_streak_calories, streaks.max_ride_streak_calories)
-    streaks.week_end = int(get_week_range(datetime.datetime.strptime(activity.start_date, '%Y-%m-%dT%H:%M:%S%z'))[1].timestamp() * 1000)
-    with open('%s/%s/streaks.bin' % (STORAGE_DIR, player_id), 'wb') as f:
-        f.write(streaks.SerializeToString())
-
 def activity_uploads(player_id, activity):
     strava_upload(player_id, activity)
     garmin_upload(player_id, activity)
@@ -3769,53 +3748,6 @@ def api_player_profile_user_game_storage_attributes():
     return ret.SerializeToString(), 200
 
 
-@app.route('/api/fitness/metrics-and-goals', methods=['GET'])
-@jwt_to_session_cookie
-@login_required
-def api_fitness_metrics_and_goals():
-    fitness = fitness_pb2.Fitness()
-    fitness.streak = get_streaks(current_user.player_id).cur_streak
-    for i, week in enumerate([fitness.this_week, fitness.last_week]):
-        start, end = get_week_range(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=i * 7))
-        week.start = start.strftime('%Y-%m-%d')
-        stmt = sqlalchemy.text("""SELECT SUM(power_units), SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
-            FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
-        row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
-        week.power_units = row[0] if row[0] else 0
-        week.distance = int(row[1]) if row[1] else 0
-        week.elevation = int(row[2]) if row[2] else 0
-        week.moving_time = int(row[3]) if row[3] else 0
-        week.work = int(row[4]) if row[4] else 0
-        week.calories = int(row[5]) if row[5] else 0
-        week.tss = row[6] if row[6] else 0
-        for i in range(0, 7):
-            zones = [0] * 7
-            day = start + datetime.timedelta(days=i)
-            stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
-                FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
-            row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
-            if row[0]:
-                d = week.days.add()
-                d.day = day.strftime('%a').lower()
-                d.distance = int(row[0])
-                d.elevation = int(row[1]) if row[1] else 0
-                d.moving_time = int(row[2]) if row[2] else 0
-                d.work = int(row[3]) if row[3] else 0
-                d.calories = int(row[4]) if row[4] else 0
-                d.tss = row[5] if row[5] else 0
-                stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
-                for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
-                    if row.power_zones:
-                        zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
-                total = sum(zones)
-                if total:
-                    for i in range(0, 7):
-                        pz = d.power_zones.add()
-                        pz.zone = i + 1
-                        pz.percentage = zones[i] * 100 / total
-    print(fitness)
-    return fitness.SerializeToString(), 200
-
 def get_streaks(player_id):
     streaks = profile_pb2.Streaks()
     streaks_file = '%s/%s/streaks.bin' % (STORAGE_DIR, player_id)
@@ -3836,11 +3768,80 @@ def get_streaks(player_id):
                 f.write(streaks.SerializeToString())
     return streaks
 
+def update_streaks(player_id, activity):
+    streaks = get_streaks(player_id)
+    start_date = stime_to_timestamp(activity.start_date) * 1000
+    if start_date > streaks.week_end + 604800000:
+        streaks.cur_streak = 1
+        streaks.cur_ride_streak_distance = 0
+        streaks.cur_ride_streak_elevation = 0
+        streaks.cur_ride_streak_calories = 0
+    elif start_date > streaks.week_end:
+        streaks.cur_streak += 1
+    streaks.cur_ride_streak_distance += int(activity.distanceInMeters)
+    streaks.cur_ride_streak_elevation += int(activity.total_elevation)
+    streaks.cur_ride_streak_calories += int(activity.calories)
+    streaks.max_streak = max(streaks.cur_streak, streaks.max_streak)
+    streaks.max_ride_streak_distance = max(streaks.cur_ride_streak_distance, streaks.max_ride_streak_distance)
+    streaks.max_ride_streak_elevation = max(streaks.cur_ride_streak_elevation, streaks.max_ride_streak_elevation)
+    streaks.max_ride_streak_calories = max(streaks.cur_ride_streak_calories, streaks.max_ride_streak_calories)
+    streaks.week_end = int(get_week_range(datetime.datetime.strptime(activity.start_date, '%Y-%m-%dT%H:%M:%S%z'))[1].timestamp() * 1000)
+    with open('%s/%s/streaks.bin' % (STORAGE_DIR, player_id), 'wb') as f:
+        f.write(streaks.SerializeToString())
+
 @app.route('/api/fitness/streaks', methods=['GET'])
 @jwt_to_session_cookie
 @login_required
 def api_fitness_streaks():
     return get_streaks(current_user.player_id).SerializeToString(), 200
+
+@app.route('/api/fitness/metrics-and-goals', methods=['GET'])
+@jwt_to_session_cookie
+@login_required
+def api_fitness_metrics_and_goals():
+    fitness = fitness_pb2.Fitness()
+    fitness.streak = get_streaks(current_user.player_id).cur_streak
+    for i, week in enumerate([fitness.this_week, fitness.last_week]):
+        start, end = get_week_range(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=i * 7))
+        week.start = start.strftime('%Y-%m-%d')
+        stmt = sqlalchemy.text("""SELECT SUM(power_units), SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
+            FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
+        row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
+        week.power_units = row[0] if row[0] else 0
+        week.distance = int(row[1]) if row[1] else 0
+        week.elevation = int(row[2]) if row[2] else 0
+        week.moving_time = int(round(row[3], -4)) if row[3] else 0
+        week.work = int(row[4]) if row[4] else 0
+        week.calories = int(row[5]) if row[5] else 0
+        week.tss = row[6] if row[6] else 0
+        week.status = "PRODUCTIVE" # "FRESH"
+        for i in range(0, 7):
+            zones = [0] * 7
+            day = start + datetime.timedelta(days=i)
+            stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
+                FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
+            row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
+            if row[0]:
+                d = week.days.add()
+                d.day = day.strftime('%a').lower()
+                d.distance = int(row[0])
+                d.elevation = int(row[1]) if row[1] else 0
+                d.moving_time = int(round(row[2], -4)) if row[2] else 0
+                d.work = int(row[3]) if row[3] else 0
+                d.calories = int(row[4]) if row[4] else 0
+                d.tss = row[5] if row[5] else 0
+                stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
+                for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
+                    if row.power_zones:
+                        zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
+                total = sum(zones)
+                if total:
+                    for i in range(0, 7):
+                        pz = d.power_zones.add()
+                        pz.zone = i + 1
+                        pz.percentage = zones[i] * 100 / total
+    print(fitness)
+    return fitness.SerializeToString(), 200
 
 
 @app.teardown_request
