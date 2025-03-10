@@ -1187,10 +1187,9 @@ def api_recommendations_recommendation():
 def api_empty_arrays():
     return jsonify([])
 
-# causes crash if fitness_widget is enabled
-#@app.route('/api/assetcms/<path:path>', methods=['GET'])
-#def api_assetcms(path):
-#    return jsonify()
+@app.route('/api/assetcms/<path:path>', methods=['GET'])
+def api_assetcms(path):
+    return send_from_directory('%s/data/assetcms' % SCRIPT_DIR, path.split('/')[-2])
 
 def activity_moving_time(activity):
     try:
