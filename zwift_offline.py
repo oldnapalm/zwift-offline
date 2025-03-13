@@ -3759,8 +3759,8 @@ def get_streaks(player_id):
             profile = profile_pb2.PlayerProfile()
             with open(profile_file, 'rb') as f:
                 profile.ParseFromString(f.read())
-            for field in ['cur_streak', 'cur_ride_streak_distance', 'cur_ride_streak_elevation', 'cur_ride_streak_calories',
-              'max_streak', 'max_ride_streak_distance', 'max_ride_streak_elevation', 'max_ride_streak_calories']:
+            for field in ['cur_streak', 'cur_streak_distance', 'cur_streak_elevation', 'cur_streak_calories',
+              'max_streak', 'max_streak_distance', 'max_streak_elevation', 'max_streak_calories']:
                 setattr(streaks, field, int(getattr(profile, field)))
             streaks.week_end = int(get_week_range(datetime.datetime.fromtimestamp(profile.last_ride))[1].timestamp() * 1000)
             with open(streaks_file, 'wb') as f:
@@ -3772,18 +3772,18 @@ def update_streaks(player_id, activity):
     start_date = stime_to_timestamp(activity.start_date) * 1000
     if start_date > streaks.week_end + 604800000:
         streaks.cur_streak = 1
-        streaks.cur_ride_streak_distance = 0
-        streaks.cur_ride_streak_elevation = 0
-        streaks.cur_ride_streak_calories = 0
+        streaks.cur_streak_distance = 0
+        streaks.cur_streak_elevation = 0
+        streaks.cur_streak_calories = 0
     elif start_date > streaks.week_end:
         streaks.cur_streak += 1
-    streaks.cur_ride_streak_distance += int(activity.distanceInMeters)
-    streaks.cur_ride_streak_elevation += int(activity.total_elevation)
-    streaks.cur_ride_streak_calories += int(activity.calories)
+    streaks.cur_streak_distance += int(activity.distanceInMeters)
+    streaks.cur_streak_elevation += int(activity.total_elevation)
+    streaks.cur_streak_calories += int(activity.calories)
     streaks.max_streak = max(streaks.cur_streak, streaks.max_streak)
-    streaks.max_ride_streak_distance = max(streaks.cur_ride_streak_distance, streaks.max_ride_streak_distance)
-    streaks.max_ride_streak_elevation = max(streaks.cur_ride_streak_elevation, streaks.max_ride_streak_elevation)
-    streaks.max_ride_streak_calories = max(streaks.cur_ride_streak_calories, streaks.max_ride_streak_calories)
+    streaks.max_streak_distance = max(streaks.cur_streak_distance, streaks.max_streak_distance)
+    streaks.max_streak_elevation = max(streaks.cur_streak_elevation, streaks.max_streak_elevation)
+    streaks.max_streak_calories = max(streaks.cur_streak_calories, streaks.max_streak_calories)
     streaks.week_end = int(get_week_range(datetime.datetime.strptime(activity.start_date, '%Y-%m-%dT%H:%M:%S%z'))[1].timestamp() * 1000)
     with open('%s/%s/streaks.bin' % (STORAGE_DIR, player_id), 'wb') as f:
         f.write(streaks.SerializeToString())
