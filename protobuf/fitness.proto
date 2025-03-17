@@ -45,9 +45,9 @@ message SportGoals {
 }
 
 message GoalSetting {
-    optional uint32 f1 = 1;
-    optional uint32 f2 = 2;
-    optional uint32 f3 = 3;
-    optional uint32 f4 = 4;
-    optional uint32 f5 = 5;
+    optional uint32 tss = 1;
+    optional uint32 calories = 2;
+    optional uint32 work = 3;
+    optional uint32 distance = 4;
+    optional uint32 moving_time = 5;
 }
