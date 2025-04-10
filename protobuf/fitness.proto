@@ -10,7 +10,7 @@ message Fitness {
 
 message WeekMetrics {
     optional string start = 1;
-    optional float power_units = 2;
+    optional float fitness_score = 2;
     optional uint32 distance = 3;
     optional uint32 elevation = 4;
     optional uint32 moving_time = 5;
@@ -38,8 +38,9 @@ message PowerZonePercentages {
 }
 
 message SportGoals {
-    optional GoalSetting riding_goals = 1; // ?
-    optional GoalSetting running_goals = 2; // ?
+    optional GoalSetting all = 1;
+    optional GoalSetting riding = 2;
+    optional GoalSetting running = 3;
     optional uint32 f4 = 4;
     optional uint64 last_updated = 5;
 }
