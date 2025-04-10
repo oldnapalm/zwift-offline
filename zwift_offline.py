@@ -57,7 +57,6 @@ import events_pb2
 import variants_pb2
 import playback_pb2
 import user_storage_pb2
-import fitness_pb2
 import online_sync
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
@@ -1203,7 +1202,7 @@ def api_empty_arrays():
 
 @app.route('/api/assetcms/<path:path>', methods=['GET'])
 def api_assetcms(path):
-    return send_from_directory('%s/data/assetcms' % SCRIPT_DIR, path.split('/')[-2])
+    return jsonify()
 
 def activity_moving_time(activity):
     try:
