@@ -373,6 +373,18 @@ class PowerCurve(db.Model):
     power_wkg = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.Integer, nullable=False)
 
+class GoalMetrics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, nullable=False)
+    weekGoalTSS = db.Column(db.Integer, nullable=False)
+    weekGoalCalories = db.Column(db.Integer, nullable=False)
+    weekGoalKjs = db.Column(db.Integer, nullable=False)
+    weekGoalDistanceKilometers = db.Column(db.Integer, nullable=False)
+    weekGoalDistanceMiles = db.Column(db.Integer, nullable=False)
+    weekGoalTimeMinutes = db.Column(db.Integer, nullable=False)
+    lastUpdated = db.Column(db.Text, nullable=False)
+    currentGoalSetting = db.Column(db.Text, nullable=False)
+
 class Version(db.Model):
     version = db.Column(db.Integer, primary_key=True)
 
@@ -397,6 +409,7 @@ class PartialProfile:
     male = True
     weight_in_grams = 0
     imageSrc = ''
+    use_metric = True
     time = 0
     def to_json(self):
         return {"countryCode": self.country_code,
@@ -520,6 +533,7 @@ def get_partial_profile(player_id):
         partial_profile.player_type = profile_pb2.PlayerType.Name(jsf(profile, 'player_type', 1))
         partial_profile.male = profile.is_male
         partial_profile.weight_in_grams = profile.weight_in_grams
+        partial_profile.use_metric = profile.use_metric
         player_partial_profiles[player_id] = partial_profile
     player_partial_profiles[player_id].time = time.monotonic()
     return player_partial_profiles[player_id]
@@ -3800,6 +3814,7 @@ def api_fitness_streaks():
 def api_fitness_metrics_and_goals():
     date = datetime.datetime.strptime(request.args.get('month') + request.args.get('weekOf') + request.args.get('year'), "%m%d%Y")
     fitness = {"fitnessMetrics": [], "goalsMetrics": {}}
+    useMetric = get_partial_profile(current_user.player_id).use_metric
     for i in range(2):
         start, end = get_week_range(date - datetime.timedelta(days=i * 7))
         stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
@@ -3809,8 +3824,8 @@ def api_fitness_metrics_and_goals():
             week = {"startOfWeek": start.strftime('%Y-%m-%d'), "fitnessScore": 0, "totalDistanceKilometers": row[0] / 1000,
                 "totalElevationMeters": int(row[1]) if row[1] else 0, "totalDurationMinutes": int(row[2] / 60000) if row[2] else 0,
                 "totalKilojoules": int(row[3]) if row[3] else 0, "totalCalories": int(row[4]) if row[4] else 0,
-                "totalTSS": row[5] if row[5] else 0, "useMetric": True, "weekStreak": get_streaks(current_user.player_id).cur_streak,
-                "numStreakSavers": 0, "days": {}}
+                "totalTSS": row[5] if row[5] else 0, "useMetric": useMetric, "weekStreak": get_streaks(current_user.player_id).cur_streak,
+                "numStreakSavers": 0, "days": {}, "trainingStatus": "FRESH"}
             for i in range(0, 7):
                 zones = [0] * 7
                 day = start + datetime.timedelta(days=i)
@@ -3831,8 +3846,16 @@ def api_fitness_metrics_and_goals():
                         for i in range(0, 7):
                             d["powerZonePercentages"][str(i + 1)] = zones[i] * 100 / total
                     week["days"][d["day"]] = d
-            week["trainingStatus"] = "FRESH"
             fitness["fitnessMetrics"].append(week)
+    row = GoalMetrics.query.filter_by(player_id=current_user.player_id).first()
+    if row:
+        cycling = {"weekGoalTSS": row.weekGoalTSS, "weekGoalCalories": row.weekGoalCalories, "weekGoalKjs": row.weekGoalKjs,
+            "weekGoalTimeMinutes": row.weekGoalTimeMinutes, "lastUpdated": row.lastUpdated}
+        if useMetric:
+            cycling["weekGoalDistanceKilometers"] = row.weekGoalDistanceKilometers
+        else:
+            cycling["weekGoalDistanceMiles"] = row.weekGoalDistanceMiles
+        fitness["goalsMetrics"] = {"all": cycling, "cycling": cycling, "running": None, "currentGoalSetting": row.currentGoalSetting}
     print(json.dumps(fitness, indent=2))
     return jsonify(fitness)
 
@@ -3840,6 +3863,14 @@ def api_fitness_metrics_and_goals():
 @jwt_to_session_cookie
 @login_required
 def api_fitness_fitness_goals_history():
+    goals = json.loads(request.stream.read())
+    goals["player_id"] = current_user.player_id
+    row = GoalMetrics.query.filter_by(player_id=current_user.player_id)
+    if row.first():
+        row.update(goals)
+    else:
+        db.session.add(GoalMetrics(**goals))
+    db.session.commit()
     return '', 204
 
 
