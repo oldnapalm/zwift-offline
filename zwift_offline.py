@@ -3909,7 +3909,7 @@ def api_fitness_metrics_and_goals():
                 sport.work = row.weekGoalKjs
                 sport.distance = row.weekGoalDistanceKilometers * 1000
                 sport.moving_time = row.weekGoalTimeMinutes * 60000
-            fitness.goals.current_goal_setting = fitness_pb2.GoalSetting.Value("GOAL_" + row.currentGoalSetting)
+            fitness.goals.current_goal = fitness_pb2.GoalSetting.Value("GOAL_" + row.currentGoalSetting)
             fitness.goals.last_updated = int(datetime.datetime.strptime(row.lastUpdated, "%Y-%m-%dT%H:%M:%S.%f%z").timestamp() * 1000)
         print(fitness)
         return fitness.SerializeToString(), 200

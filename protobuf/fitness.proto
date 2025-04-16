@@ -4,7 +4,7 @@ message Fitness {
     optional uint32 streak = 1;
     optional WeekMetrics this_week = 2;
     optional WeekMetrics last_week = 3;
-    optional GoalsMetrics goals = 4;
+    optional SportGoals goals = 4;
     optional uint32 f5 = 5;
 }
 
@@ -37,15 +37,15 @@ message PowerZonePercentages {
     optional float percentage = 2;
 }
 
-message GoalsMetrics {
-    optional SportGoals all = 1;
-    optional SportGoals cycling = 2;
-    optional SportGoals running = 3;
-    optional GoalSetting current_goal_setting = 4;
+message SportGoals {
+    optional GoalMetrics all = 1;
+    optional GoalMetrics cycling = 2;
+    optional GoalMetrics running = 3;
+    optional GoalSetting current_goal = 4;
     optional uint64 last_updated = 5;
 }
 
-message SportGoals {
+message GoalMetrics {
     optional uint32 tss = 1;
     optional uint32 calories = 2;
     optional uint32 work = 3;
