@@ -3821,42 +3821,41 @@ def api_fitness_metrics_and_goals():
             stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
                 FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
             row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
-            if row[0]:
-                week = {"startOfWeek": start.strftime('%Y-%m-%d'), "fitnessScore": 0, "totalDistanceKilometers": row[0] / 1000,
-                    "totalElevationMeters": int(row[1]) if row[1] else 0, "totalDurationMinutes": int(row[2] / 60000) if row[2] else 0,
-                    "totalKilojoules": int(row[3]) if row[3] else 0, "totalCalories": int(row[4]) if row[4] else 0,
-                    "totalTSS": row[5] if row[5] else 0, "useMetric": useMetric, "weekStreak": get_streaks(current_user.player_id).cur_streak,
-                    "numStreakSavers": 0, "days": {}, "trainingStatus": "FRESH"}
-                for i in range(0, 7):
-                    zones = [0] * 7
-                    day = start + datetime.timedelta(days=i)
-                    stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
-                        FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
-                    row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
-                    if row[0]:
-                        d = {"day": day.strftime('%a').lower(), "distanceKilometers": row[0] / 1000, "elevationMeters": int(row[1]) if row[1] else 0,
-                            "durationMinutes": int(row[2] / 60000) if row[2] else 0, "kilojoules": int(row[3]) if row[3] else 0,
-                            "calories": int(row[4]) if row[4] else 0, "tss": row[5] if row[5] else 0, "givenXp": 0}
-                        stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
-                        for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
-                            if row.power_zones:
-                                zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
-                        total = sum(zones)
-                        if total:
-                            d["powerZonePercentages"] = {}
-                            for i in range(0, 7):
-                                d["powerZonePercentages"][str(i + 1)] = zones[i] * 100 / total
-                        week["days"][d["day"]] = d
-                fitness["fitnessMetrics"].append(week)
+            week = {"startOfWeek": start.strftime('%Y-%m-%d'), "fitnessScore": 0, "totalDistanceKilometers": row[0] / 1000 if row[0] else 0,
+                "totalElevationMeters": int(row[1]) if row[1] else 0, "totalDurationMinutes": int(row[2] / 60000) if row[2] else 0,
+                "totalKilojoules": int(row[3]) if row[3] else 0, "totalCalories": int(row[4]) if row[4] else 0,
+                "totalTSS": row[5] if row[5] else 0, "useMetric": useMetric, "weekStreak": get_streaks(current_user.player_id).cur_streak,
+                "numStreakSavers": 0, "days": {}, "trainingStatus": "FRESH"}
+            for i in range(0, 7):
+                zones = [0] * 7
+                day = start + datetime.timedelta(days=i)
+                stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
+                    FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
+                row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
+                if row[0]:
+                    d = {"day": day.strftime('%a').lower(), "distanceKilometers": row[0] / 1000, "elevationMeters": int(row[1]) if row[1] else 0,
+                        "durationMinutes": int(row[2] / 60000) if row[2] else 0, "kilojoules": int(row[3]) if row[3] else 0,
+                        "calories": int(row[4]) if row[4] else 0, "tss": row[5] if row[5] else 0, "givenXp": 0}
+                    stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
+                    for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
+                        if row.power_zones:
+                            zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
+                    total = sum(zones)
+                    if total:
+                        d["powerZonePercentages"] = {}
+                        for i in range(0, 7):
+                            d["powerZonePercentages"][str(i + 1)] = zones[i] * 100 / total
+                    week["days"][d["day"]] = d
+            fitness["fitnessMetrics"].append(week)
         row = GoalMetrics.query.filter_by(player_id=current_user.player_id).first()
-        if row:
-            cycling = {"weekGoalTSS": row.weekGoalTSS, "weekGoalCalories": row.weekGoalCalories, "weekGoalKjs": row.weekGoalKjs,
-                "weekGoalTimeMinutes": row.weekGoalTimeMinutes, "lastUpdated": row.lastUpdated}
-            if useMetric:
-                cycling["weekGoalDistanceKilometers"] = row.weekGoalDistanceKilometers
-            else:
-                cycling["weekGoalDistanceMiles"] = row.weekGoalDistanceMiles
-            fitness["goalsMetrics"] = {"all": cycling, "cycling": cycling, "running": None, "currentGoalSetting": row.currentGoalSetting}
+        cycling = {"weekGoalTSS": row.weekGoalTSS if row else 150, "weekGoalCalories": row.weekGoalCalories if row else 1500,
+            "weekGoalKjs": row.weekGoalKjs if row else 1500, "weekGoalTimeMinutes": row.weekGoalTimeMinutes if row else 120,
+            "lastUpdated": row.lastUpdated if row else datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + 'Z'}
+        if useMetric:
+            cycling["weekGoalDistanceKilometers"] = row.weekGoalDistanceKilometers if row else 100
+        else:
+            cycling["weekGoalDistanceMiles"] = row.weekGoalDistanceMiles if row else 62
+        fitness["goalsMetrics"] = {"all": cycling, "cycling": cycling, "running": None, "currentGoalSetting": row.currentGoalSetting if row else "DISTANCE"}
         print(json.dumps(fitness, indent=2))
         return jsonify(fitness)
     else:
@@ -3902,15 +3901,15 @@ def api_fitness_metrics_and_goals():
                             pz.zone = i + 1
                             pz.percentage = zones[i] * 100 / total
         row = GoalMetrics.query.filter_by(player_id=current_user.player_id).first()
-        if row:
-            for sport in [fitness.goals.all, fitness.goals.cycling]:
-                sport.tss = row.weekGoalTSS
-                sport.calories = row.weekGoalCalories
-                sport.work = row.weekGoalKjs
-                sport.distance = row.weekGoalDistanceKilometers * 1000
-                sport.moving_time = row.weekGoalTimeMinutes * 60000
-            fitness.goals.current_goal = fitness_pb2.GoalSetting.Value("GOAL_" + row.currentGoalSetting)
-            fitness.goals.last_updated = int(datetime.datetime.strptime(row.lastUpdated, "%Y-%m-%dT%H:%M:%S.%f%z").timestamp() * 1000)
+        for sport in [fitness.goals.all, fitness.goals.cycling]:
+            sport.tss = row.weekGoalTSS if row else 150
+            sport.calories = row.weekGoalCalories if row else 1500
+            sport.work = row.weekGoalKjs if row else 1500
+            sport.distance = (row.weekGoalDistanceKilometers if row else 100) * 1000
+            sport.moving_time = (row.weekGoalTimeMinutes if row else 120) * 60000
+        fitness.goals.current_goal = fitness_pb2.GoalSetting.Value("GOAL_" + row.currentGoalSetting if row else "GOAL_DISTANCE")
+        last_updated = datetime.datetime.strptime(row.lastUpdated, "%Y-%m-%dT%H:%M:%S.%f%z") if row else datetime.datetime.now(datetime.timezone.utc)
+        fitness.goals.last_updated = int(last_updated.timestamp() * 1000)
         print(fitness)
         return fitness.SerializeToString(), 200
 
