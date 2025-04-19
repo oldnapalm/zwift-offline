@@ -1240,6 +1240,7 @@ def select_activities_json(player_id, limit, start_after=None):
     return ret
 
 @app.route('/api/activity-feed/feed/', methods=['GET'])
+@app.route('/api/activity-feed-service-v2/feed/just-me', methods=['GET'])
 @jwt_to_session_cookie
 @login_required
 def api_activity_feed():
