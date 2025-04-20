@@ -1628,7 +1628,7 @@ def relay_race_event_starting_line_id(event_id):
 @jwt_to_session_cookie
 @login_required
 def api_zfiles():
-    if request.headers['Source'] == 'zwift-companion':
+    if request.headers['Accept'] == 'application/json':
         zfile = json.loads(request.stream.read())
         zfile_folder = zfile['folder']
         zfile_filename = zfile['name']
@@ -1842,7 +1842,7 @@ def do_api_profiles(profile_id, is_json):
 @jwt_to_session_cookie
 @login_required
 def api_profiles_me():
-    if request.headers['Source'] == "zwift-companion":
+    if request.headers['Accept'] == 'application/json':
         return do_api_profiles(current_user.player_id, True)
     else:
         return do_api_profiles(current_user.player_id, False)
@@ -2417,7 +2417,7 @@ def activity_uploads(player_id, activity):
 @jwt_to_session_cookie
 @login_required
 def api_profiles_activities_id(player_id, activity_id):
-    if request.headers['Source'] == "zwift-companion":
+    if request.headers['Accept'] == 'application/json':
         return '', 400 # edit from ZCA is not supported yet
     if not request.stream:
         return '', 400
