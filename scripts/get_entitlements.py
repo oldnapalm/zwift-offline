@@ -8,9 +8,10 @@ while True:
     p = za.find(b'\x45\x4E\x54\x49\x54\x4C\x45\x4D\x45\x4E\x54\x5F', s)
     if p != -1:
         i = p
-        while za[i] != 0:
+        while za[i] != 0 and za[i] != 16:
             i += 1
-        data.append(za[p:i].decode("utf-8"))
+        if za[i] == 0:
+            data.append(za[p:i].decode("utf-8"))
         s = i
     else:
         break
