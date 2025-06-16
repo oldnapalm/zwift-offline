@@ -59,8 +59,10 @@ import events_pb2
 import variants_pb2
 import playback_pb2
 import user_storage_pb2
-import online_sync
 import fitness_pb2
+import structured_events_pb2
+
+import online_sync
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 logger = logging.getLogger('zoffline')
@@ -1740,7 +1742,15 @@ def hvc_ingestion_service_batch():
 
 @app.route('/api/actions-service/structured-events/batch', methods=['POST'])
 def api_actions_service_structured_events_batch():
-    return '', 202
+    stream = request.stream.read()
+    #import blackboxprotobuf
+    #message, typedef = blackboxprotobuf.protobuf_to_json(stream)
+    #print(json.dumps(json.loads(message), indent=2))
+    req = structured_events_pb2.SaveStructuredEventRequest()
+    req.ParseFromString(stream)
+    res = structured_events_pb2.SaveStructuredEventResponse()
+    res.sequenceNumber = req.sequenceNumber
+    return res.SerializeToString(), 202
 
 
 def age(dob):
@@ -3330,6 +3340,16 @@ def save_bookmark(state, name):
     with open(os.path.join(bookmarks_dir, name + '.bin'), 'wb') as f:
         f.write(state.SerializeToString())
 
+def nearest(p, b):
+    i = None
+    states = [(s.roadTime, s.distance) for s in b.route.states if road_id(s) == road_id(p) and is_forward(s) == is_forward(p)]
+    if states:
+        i = 0
+        n = min(states, key=lambda x: sum(abs(r - d) for r, d in zip((p.roadTime, p.distance), x)))
+        while b.route.states[i].roadTime != n[0] or b.route.states[i].distance != n[1]:
+            i += 1
+    return i
+
 @app.route('/relay/worlds/attributes', methods=['POST'])
 @jwt_to_session_cookie
 @login_required
@@ -3349,6 +3369,15 @@ def relay_worlds_attributes():
                 command = chat_message.message[1:]
                 if command == 'regroup':
                     regroup_ghosts(chat_message.player_id)
+                elif command == 'groupbots':
+                    if not MULTIPLAYER or chat_message.player_id == 1 or current_user.is_admin:
+                        for bot in global_bots.keys():
+                            if bot % 1000000 < 10000:  # not a duplicate
+                                n = nearest(state, global_bots[bot])
+                                if n != None:
+                                    global_bots[bot].position = n
+                    else:
+                        send_message('Permission denied', recipients=[chat_message.player_id])
                 elif command == 'position':
                     logger.info('course %s road %s isForward %s roadTime %s route %s' % (get_course(state), road_id(state), is_forward(state), state.roadTime, state.route))
                 elif command.startswith('bookmark') and len(command) > 9:
@@ -4354,7 +4383,15 @@ def run_standalone(passed_online, passed_global_relay, passed_global_pace_partne
     remove_inactive_thread = threading.Thread(target=remove_inactive)
     remove_inactive_thread.start()
     logger.info("Server version %s is running." % ZWIFT_VER_CUR)
-    server = WSGIServer(('0.0.0.0', https_port), app, certfile='%s/cert-zwift-com.pem' % SSL_DIR, keyfile='%s/key-zwift-com.pem' % SSL_DIR, log=logger)
+    host = os.environ.get('ZOFFLINE_API_HOST', '0.0.0.0')
+    port = int(os.environ.get('ZOFFLINE_API_PORT', https_port))
+    use_cert = os.environ.get('ZOFFLINE_API_USE_CERT', 'true').lower() == 'true'
+    if host != '0.0.0.0' or port != 443 or not use_cert:
+        logger.info("Listening on %s:%d using certificate: %s", host, port, use_cert)
+    cert_kwargs = {'certfile': '%s/cert-zwift-com.pem' % SSL_DIR, 'keyfile': '%s/key-zwift-com.pem' % SSL_DIR}
+    if not use_cert:
+        cert_kwargs = {}
+    server = WSGIServer((host, port), app, log=logger, **cert_kwargs)
     server.serve_forever()
 
 #    app.run(ssl_context=('%s/cert-zwift-com.pem' % SSL_DIR, '%s/key-zwift-com.pem' % SSL_DIR), port=443, threaded=True, host='0.0.0.0') # debug=True, use_reload=False)

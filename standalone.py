@@ -444,14 +444,11 @@ def regroup_ghosts(player_id):
     if not ghosts.started and ghosts.play:
         ghosts.started = True
     for g in ghosts.play:
-        states = [(s.roadTime, s.distance) for s in g.route.states if zo.road_id(s) == zo.road_id(p) and zo.is_forward(s) == zo.is_forward(p)]
-        if states:
-            c = min(states, key=lambda x: sum(abs(r - d) for r, d in zip((p.roadTime, p.distance), x)))
-            g.position = 0
-            while g.route.states[g.position].roadTime != c[0] or g.route.states[g.position].distance != c[1]:
-                g.position += 1
-            if is_ahead(p, g.route.states[g.position].roadTime):
-                g.position += 1
+        n = zo.nearest(p, g)
+        if n != None:
+            if is_ahead(p, g.route.states[n].roadTime):
+                n += 1
+            g.position = n
     ghosts.last_play = 0
 
 def load_pace_partners():
@@ -792,18 +789,24 @@ if os.path.isfile(ENABLE_BOTS_FILE):
     bot.start()
 
 socketserver.ThreadingTCPServer.allow_reuse_address = True
-httpd = socketserver.ThreadingTCPServer(('', zo.http_port), CDNHandler)
+cdn_host = os.environ.get('ZOFFLINE_CDN_HOST', '')
+cdn_port = int(os.environ.get('ZOFFLINE_CDN_PORT', zo.http_port))
+httpd = socketserver.ThreadingTCPServer((cdn_host, cdn_port), CDNHandler)
 zoffline_thread = threading.Thread(target=httpd.serve_forever)
 zoffline_thread.daemon = True
 zoffline_thread.start()
 
-tcpserver = socketserver.ThreadingTCPServer(('', 3025), TCPHandler)
+tcp_host = os.environ.get('ZOFFLINE_TCP_HOST', '')
+tcp_port = int(os.environ.get('ZOFFLINE_TCP_PORT', 3025))
+tcpserver = socketserver.ThreadingTCPServer((tcp_host, tcp_port), TCPHandler)
 tcpserver_thread = threading.Thread(target=tcpserver.serve_forever)
 tcpserver_thread.daemon = True
 tcpserver_thread.start()
 
 socketserver.ThreadingUDPServer.allow_reuse_address = True
-udpserver = socketserver.ThreadingUDPServer(('', 3024), UDPHandler)
+udp_host = os.environ.get('ZOFFLINE_UDP_HOST', '')
+udp_port = int(os.environ.get('ZOFFLINE_UDP_PORT', 3024))
+udpserver = socketserver.ThreadingUDPServer((udp_host, udp_port), UDPHandler)
 udpserver_thread = threading.Thread(target=udpserver.serve_forever)
 udpserver_thread.daemon = True
 udpserver_thread.start()
