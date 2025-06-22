@@ -1395,7 +1395,7 @@ def api_users_login():
     response.info.apis.trainingpeaks_url = "https://api.trainingpeaks.com"
     response.info.time = int(time.time())
     udp_node = response.info.nodes.nodes.add()
-    udp_node.ip = '127.0.0.1' if request.remote_addr == '127.0.0.1' else server_ip  # TCP telemetry server
+    udp_node.ip = server_ip  # TCP telemetry server
     udp_node.port = 3023
     response.relay_session_id = player_id
     response.expiration = 70
@@ -3040,7 +3040,7 @@ def api_profiles_goals_id(player_id, goal_id):
 def api_tcp_config():
     infos = per_session_info_pb2.TcpConfig()
     info = infos.nodes.add()
-    info.ip = '127.0.0.1' if request.remote_addr == '127.0.0.1' else server_ip
+    info.ip = server_ip
     info.port = 3023
     return infos.SerializeToString(), 200
 
