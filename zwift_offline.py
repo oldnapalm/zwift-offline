@@ -4423,10 +4423,11 @@ def run_standalone(passed_online, passed_global_relay, passed_global_pace_partne
     remove_inactive_thread = threading.Thread(target=remove_inactive)
     remove_inactive_thread.start()
     logger.info("Server version %s is running." % ZWIFT_VER_CUR)
-    host = os.environ.get('ZOFFLINE_API_HOST', '0.0.0.0')
+    SERVER_HOST = os.environ.get('ZOFFLINE_SERVER_HOST', '0.0.0.0')
+    host = os.environ.get('ZOFFLINE_API_HOST', SERVER_HOST)
     port = int(os.environ.get('ZOFFLINE_API_PORT', https_port))
     use_cert = os.environ.get('ZOFFLINE_API_USE_CERT', 'true').lower() == 'true'
-    if host != '0.0.0.0' or port != 443 or not use_cert:
+    if host != SERVER_HOST or port != 443 or not use_cert:
         logger.info("Listening on %s:%d using certificate: %s", host, port, use_cert)
     cert_kwargs = {'certfile': '%s/cert-zwift-com.pem' % SSL_DIR, 'keyfile': '%s/key-zwift-com.pem' % SSL_DIR}
     if not use_cert:
@@ -4434,7 +4435,7 @@ def run_standalone(passed_online, passed_global_relay, passed_global_pace_partne
     server = WSGIServer((host, port), app, log=logger, **cert_kwargs)
     server.serve_forever()
 
-#    app.run(ssl_context=('%s/cert-zwift-com.pem' % SSL_DIR, '%s/key-zwift-com.pem' % SSL_DIR), port=443, threaded=True, host='0.0.0.0') # debug=True, use_reload=False)
+#    app.run(ssl_context=('%s/cert-zwift-com.pem' % SSL_DIR, '%s/key-zwift-com.pem' % SSL_DIR), port=443, threaded=True, host=SERVER_HOST) # debug=True, use_reload=False)
 
 
 if __name__ == "__main__":

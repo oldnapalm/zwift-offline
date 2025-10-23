@@ -788,23 +788,30 @@ if os.path.isfile(ENABLE_BOTS_FILE):
     bot = threading.Thread(target=play_bots)
     bot.start()
 
+SERVER_HOST = os.environ.get('ZOFFLINE_SERVER_HOST', '')
+if ':' in SERVER_HOST:
+    import socket
+    socketserver.ThreadingTCPServer.address_family = socket.AF_INET6
+    socketserver.ThreadingUDPServer.address_family = socket.AF_INET6
+
 socketserver.ThreadingTCPServer.allow_reuse_address = True
-cdn_host = os.environ.get('ZOFFLINE_CDN_HOST', '')
+socketserver.ThreadingUDPServer.allow_reuse_address = True
+
+cdn_host = os.environ.get('ZOFFLINE_CDN_HOST', SERVER_HOST)
 cdn_port = int(os.environ.get('ZOFFLINE_CDN_PORT', zo.http_port))
 httpd = socketserver.ThreadingTCPServer((cdn_host, cdn_port), CDNHandler)
 zoffline_thread = threading.Thread(target=httpd.serve_forever)
 zoffline_thread.daemon = True
 zoffline_thread.start()
 
-tcp_host = os.environ.get('ZOFFLINE_TCP_HOST', '')
+tcp_host = os.environ.get('ZOFFLINE_TCP_HOST', SERVER_HOST)
 tcp_port = int(os.environ.get('ZOFFLINE_TCP_PORT', 3025))
 tcpserver = socketserver.ThreadingTCPServer((tcp_host, tcp_port), TCPHandler)
 tcpserver_thread = threading.Thread(target=tcpserver.serve_forever)
 tcpserver_thread.daemon = True
 tcpserver_thread.start()
 
-socketserver.ThreadingUDPServer.allow_reuse_address = True
-udp_host = os.environ.get('ZOFFLINE_UDP_HOST', '')
+udp_host = os.environ.get('ZOFFLINE_UDP_HOST', SERVER_HOST)
 udp_port = int(os.environ.get('ZOFFLINE_UDP_PORT', 3024))
 udpserver = socketserver.ThreadingUDPServer((udp_host, udp_port), UDPHandler)
 udpserver_thread = threading.Thread(target=udpserver.serve_forever)
