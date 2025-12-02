@@ -1,3 +1,6 @@
+> [!WARNING]
+> This fork contains changes to run as a system service on Oracle Cloud. Refer to [this wiki page](https://github.com/oldnapalm/zwift-offline/wiki/Creating-a-server-on-Oracle-Cloud-Free-Tier) for more details.
+
 # zoffline
 
 zoffline enables the use of [Zwift](http://zwift.com) offline by acting as a partial implementation of a Zwift server. By default zoffline is only for a single player. See [Step 6: Enable Multiplayer](#step-6-optional-enable-multiplayer) for how to enable support for multiple users/profiles.
