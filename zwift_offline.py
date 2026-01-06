@@ -157,7 +157,7 @@ if not os.path.exists(SECRET_KEY_FILE):
         f.write(os.urandom(16))
 with open(SECRET_KEY_FILE, 'rb') as f:
     app.config['SECRET_KEY'] = f.read()
-app.config['MAX_CONTENT_LENGTH'] = 4 * 1024 * 1024  # A typical .fit file with power, cadence, and heartrate data recorded in December 2024 is approximately 1.3 MB / 4 hours.
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 db = SQLAlchemy()
 db.init_app(app)
 
@@ -1199,6 +1199,10 @@ def api_empty_arrays():
 @app.route('/api/assetcms/<path:path>', methods=['GET'])
 def api_assetcms(path):
     return jsonify()
+
+@app.route('/api/head-unit-bff/<path:path>', methods=['GET'])
+def api_head_unit_bff(path):
+    return jsonify({"items":[]})
 
 def activity_moving_time(activity):
     try:
