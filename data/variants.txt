@@ -2590,6 +2590,7 @@
     },
     {
       "name": "zwift_launcher_osx_rollout",
+      "value": true,
       "values": {
         "fields": {
           "ver_cur": {
@@ -2602,6 +2603,9 @@
       "name": "zwift_launcher_osx_silicon",
       "value": true,
       "values": {}
+    },
+    {
+      "name": "zwift_launcher_osx_use_local_appdata"
     },
     {
       "name": "zwift_launcher_update_interval",
@@ -2619,6 +2623,7 @@
     },
     {
       "name": "zwift_launcher_win_rollout",
+      "value": true,
       "values": {
         "fields": {
           "ver_cur": {
@@ -2626,6 +2631,9 @@
           }
         }
       }
+    },
+    {
+      "name": "zwift_launcher_win_use_local_appdata"
     }
   ]
 }
