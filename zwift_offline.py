@@ -3790,6 +3790,7 @@ def create_variants_response(request, variants):
                 response.variants.append(variants[param])
             else:
                 logger.info("Unknown feature: " + param)
+                response.variants.add().name = param
     return response.SerializeToString(), 200
 
 @app.route('/experimentation/v1/variant', methods=['POST'])
