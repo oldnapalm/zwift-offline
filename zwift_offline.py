@@ -170,6 +170,7 @@ map_override = {}
 climb_override = {}
 global_bookmarks = {}
 global_race_results = {}
+zwift_online_tokens = {}
 restarting = False
 restarting_in_minutes = 0
 reload_pacer_bots = False
@@ -878,43 +879,43 @@ def profile(username):
             return render_template("profile.html", username=current_user.username, uname=cred[0], passw=cred[1])
         username = request.form['username']
         password = request.form['password']
-        session = requests.session()
-        try:
-            access_token, refresh_token = online_sync.login(session, username, password)
+        with requests.session() as session:
             try:
-                if request.form.get("zwift_profile"):
-                    profile = online_sync.query(session, access_token, "api/profiles/me")
-                    profile_file = '%s/profile.bin' % profile_dir
-                    backup_file(profile_file)
-                    with open(profile_file, 'wb') as f:
-                        f.write(profile)
-                    login_request = login_pb2.LoginRequest()
-                    login_request.key = random.randbytes(16)
-                    login_response = login_pb2.LoginResponse()
-                    login_response.ParseFromString(online_sync.api_login(session, access_token, login_request))
-                    login_response_dict = MessageToDict(login_response, preserving_proto_field_name=True)
-                    if 'economy_config' in login_response_dict:
-                        economy_config_file = '%s/economy_config.txt' % profile_dir
-                        backup_file(economy_config_file)
-                        with open(economy_config_file, 'w') as f:
-                            json.dump(login_response_dict['economy_config'], f, indent=2)
-                if request.form.get("achievements"):
-                    achievements = online_sync.query(session, access_token, "achievement/loadPlayerAchievements")
-                    achievements_file = '%s/achievements.bin' % profile_dir
-                    backup_file(achievements_file)
-                    with open(achievements_file, 'wb') as f:
-                        f.write(achievements)
-                online_sync.logout(session, refresh_token)
-                if request.form.get("save_zwift"):
-                    encrypt_credentials(file, (username, password))
+                access_token, refresh_token = online_sync.login(session, username, password)
+                try:
+                    if request.form.get("zwift_profile"):
+                        profile = online_sync.query(session, access_token, "api/profiles/me")
+                        profile_file = '%s/profile.bin' % profile_dir
+                        backup_file(profile_file)
+                        with open(profile_file, 'wb') as f:
+                            f.write(profile)
+                        login_request = login_pb2.LoginRequest()
+                        login_request.key = random.randbytes(16)
+                        login_response = login_pb2.LoginResponse()
+                        login_response.ParseFromString(online_sync.api_login(session, access_token, login_request))
+                        login_response_dict = MessageToDict(login_response, preserving_proto_field_name=True)
+                        if 'economy_config' in login_response_dict:
+                            economy_config_file = '%s/economy_config.txt' % profile_dir
+                            backup_file(economy_config_file)
+                            with open(economy_config_file, 'w') as f:
+                                json.dump(login_response_dict['economy_config'], f, indent=2)
+                    if request.form.get("achievements"):
+                        achievements = online_sync.query(session, access_token, "achievement/loadPlayerAchievements")
+                        achievements_file = '%s/achievements.bin' % profile_dir
+                        backup_file(achievements_file)
+                        with open(achievements_file, 'wb') as f:
+                            f.write(achievements)
+                    online_sync.logout(session, refresh_token)
+                    if request.form.get("save_zwift"):
+                        encrypt_credentials(file, (username, password))
+                except Exception as exc:
+                    logger.warning('Zwift profile: %s' % repr(exc))
+                    flash("Error downloading profile.")
+                    return render_template("profile.html", username=current_user.username, uname=cred[0], passw=cred[1])
             except Exception as exc:
-                logger.warning('Zwift profile: %s' % repr(exc))
-                flash("Error downloading profile.")
-                return render_template("profile.html", username=current_user.username, uname=cred[0], passw=cred[1])
-        except Exception as exc:
-            logger.warning('online_sync.login: %s' % repr(exc))
-            flash("Invalid username or password.")
-            return render_template("profile.html", username=current_user.username)
+                logger.warning('online_sync.login: %s' % repr(exc))
+                flash("Invalid username or password.")
+                return render_template("profile.html", username=current_user.username)
         return redirect(url_for('settings', username=current_user.username))
     return render_template("profile.html", username=current_user.username, uname=cred[0], passw=cred[1])
 
@@ -1469,6 +1470,15 @@ def logout_player(player_id):
     if player_id in global_bookmarks:
         global_bookmarks[player_id].clear()
         global_bookmarks.pop(player_id)
+    if player_id in zwift_online_tokens:
+        tokens = zwift_online_tokens[player_id]
+        if 'refresh_token' in tokens:
+            with requests.session() as session:
+                try:
+                    online_sync.logout(session, tokens['refresh_token'])
+                except Exception as exc:
+                    logger.warning("logout_player: %s" % repr(exc))
+        zwift_online_tokens.pop(player_id)
 
 @app.route('/api/users/logout', methods=['POST'])
 @jwt_to_session_cookie
@@ -2372,25 +2382,36 @@ def intervals_upload(player_id, activity):
         logger.warning("Intervals.icu upload failed. No internet? %s" % repr(exc))
 
 
+def get_zwift_online_tokens(player_id):
+    if not player_id in zwift_online_tokens:
+        zwift_online_tokens[player_id] = {}
+    tokens = zwift_online_tokens[player_id]
+    if not 'access_token' in tokens or not tokens['access_token']:
+        tokens['access_token'] = None
+        zwift_credentials = "%s/%s/zwift_credentials.bin" % (STORAGE_DIR, player_id)
+        if os.path.isfile(zwift_credentials):
+            username, password = decrypt_credentials(zwift_credentials)
+            with requests.session() as session:
+                try:
+                    tokens['access_token'], tokens['refresh_token'] = online_sync.login(session, username, password)
+                except Exception as exc:
+                    logger.warning("get_zwift_online_tokens: %s" % repr(exc))
+    return tokens
+
 def zwift_upload(player_id, activity):
-    zwift_credentials = '%s/%s/zwift_credentials.bin' % (STORAGE_DIR, player_id)
-    if not os.path.exists(zwift_credentials):
-        logger.info("zwift_credentials.bin missing, skip Zwift activity update")
-        return
-    username, password = decrypt_credentials(zwift_credentials)
-    try:
-        session = requests.session()
-        access_token, refresh_token = online_sync.login(session, username, password)
-        activity.player_id = online_sync.get_player_id(session, access_token)
-        new_activity = activity_pb2.Activity()
-        new_activity.CopyFrom(activity)
-        new_activity.ClearField('id')
-        new_activity.ClearField('fit')
-        activity.id = online_sync.create_activity(session, access_token, new_activity)
-        online_sync.upload_activity(session, access_token, activity)
-        online_sync.logout(session, refresh_token)
-    except Exception as exc:
-        logger.warning("Zwift upload failed. No internet? %s" % repr(exc))
+    tokens = get_zwift_online_tokens(player_id)
+    if tokens['access_token']:
+        with requests.session() as session:
+            try:
+                activity.player_id = online_sync.get_player_id(session, tokens['access_token'])
+                new_activity = activity_pb2.Activity()
+                new_activity.CopyFrom(activity)
+                new_activity.ClearField('id')
+                new_activity.ClearField('fit')
+                activity.id = online_sync.create_activity(session, tokens['access_token'], new_activity)
+                online_sync.upload_activity(session, tokens['access_token'], activity)
+            except Exception as exc:
+                logger.warning("Zwift upload failed. No internet? %s" % repr(exc))
 
 
 def moving_average(iterable, n):
@@ -2451,6 +2472,7 @@ def activity_uploads(player_id, activity):
     runalyze_upload(player_id, activity)
     intervals_upload(player_id, activity)
     zwift_upload(player_id, activity)
+    logout_player(player_id)
 
 @app.route('/api/profiles/<int:player_id>/activities/<int:activity_id>', methods=['PUT', 'DELETE'])
 @jwt_to_session_cookie
@@ -2494,7 +2516,6 @@ def api_profiles_activities_id(player_id, activity_id):
     # Upload in separate thread to avoid client freezing if it takes longer than expected
     upload = threading.Thread(target=activity_uploads, args=(player_id, activity))
     upload.start()
-    logout_player(player_id)
     return response, 200
 
 @app.route('/api/profiles/<int:receiving_player_id>/activities/0/rideon', methods=['POST']) #activity_id Seem to always be 0, even when giving ride on to ppl with 30km+
@@ -3776,6 +3797,7 @@ def create_variants_response(request, variants):
                 response.variants.append(variants[param])
             else:
                 logger.info("Unknown feature: " + param)
+                response.variants.add().name = param
     return response.SerializeToString(), 200
 
 @app.route('/experimentation/v1/variant', methods=['POST'])
@@ -4096,7 +4118,19 @@ def api_fitness_fitness_goals_history():
 
 
 @app.route('/api/d-lock-service/device/authenticate', methods=['POST'])
+@jwt_to_session_cookie
+@login_required
 def api_d_lock_service_device_authenticate():
+    tokens = get_zwift_online_tokens(current_user.player_id)
+    if tokens['access_token']:
+        headers = dict(request.headers)
+        headers['Authorization'] = "Bearer %s" % tokens['access_token']
+        with requests.session() as session:
+            try:
+                response = session.post(url="https://us-or-rly101.zwift.com/api/d-lock-service/device/authenticate", headers=headers, data=request.stream.read())
+                return response.content, response.status_code
+            except Exception as exc:
+                logger.warning("api_d_lock_service_device_authenticate: %s" % repr(exc))
     return '', 204
 
 

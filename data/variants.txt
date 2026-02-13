@@ -256,8 +256,7 @@
       "value": true
     },
     {
-      "name": "game_1_105_background_pairing",
-      "values": {}
+      "name": "game_1_105_background_pairing"
     },
     {
       "name": "game_1_105_route_elevation_graph",
@@ -603,8 +602,7 @@
       "values": {}
     },
     {
-      "name": "game_1_48_conditional_entities",
-      "values": {}
+      "name": "game_1_48_conditional_entities"
     },
     {
       "name": "game_1_48_show_rssi",
@@ -1245,7 +1243,8 @@
       }
     },
     {
-      "name": "game_1_76_second_entitlements_chunk"
+      "name": "game_1_76_second_entitlements_chunk",
+      "value": true
     },
     {
       "name": "game_1_76_teleportation_fix",
@@ -1379,11 +1378,6 @@
           }
         }
       }
-    },
-    {
-      "name": "game_1_86_0_vt_spin",
-      "value": true,
-      "values": {}
     },
     {
       "name": "game_1_86_badges_v3",
@@ -1639,10 +1633,6 @@
       }
     },
     {
-      "name": "game_1_99_use_first_decision",
-      "value": true
-    },
-    {
       "name": "game_3second_power_average_smoothing",
       "value": true,
       "values": {
@@ -1778,6 +1768,20 @@
       "values": {}
     },
     {
+      "name": "game_alpe_du_zwift_prize_wheel_override",
+      "value": true,
+      "values": {
+        "fields": {
+          "alpe_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "alpe_reward_spinner_ended": {
+            "varintValue": "1776643199"
+          }
+        }
+      }
+    },
+    {
       "name": "game_android_improved_ram_detection",
       "values": {}
     },
@@ -1857,6 +1861,10 @@
     {
       "name": "game_choose_any_avatar",
       "value": true,
+      "values": {}
+    },
+    {
+      "name": "game_coffeestop_set_cooldown_seconds",
       "values": {}
     },
     {
@@ -1948,7 +1956,7 @@
             "stringValue": "dlc_asset"
           },
           "build_id": {
-            "stringValue": "158014"
+            "stringValue": "158465"
           },
           "canary_test": {
             "boolValue": true
@@ -1991,23 +1999,6 @@
           },
           "use_startup": {
             "boolValue": false
-          }
-        }
-      }
-    },
-    {
-      "name": "game_emojis_for_legacy_ui",
-      "value": true,
-      "values": {
-        "fields": {
-          "emoji_max_length_fix": {
-            "boolValue": true
-          },
-          "max_emoji_first_name": {
-            "varintValue": "0"
-          },
-          "max_emoji_last_name": {
-            "varintValue": "2"
           }
         }
       }
@@ -2163,7 +2154,8 @@
       "values": {}
     },
     {
-      "name": "game_nubra"
+      "name": "game_nubra",
+      "value": true
     },
     {
       "name": "game_off_route_path_prediction",
@@ -2175,6 +2167,80 @@
           },
           "minimap": {
             "boolValue": true
+          }
+        }
+      }
+    },
+    {
+      "name": "game_prize_wheel_schedule",
+      "value": true,
+      "values": {
+        "fields": {
+          "epic_kom_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "epic_kom_reward_spinner_ended": {
+            "varintValue": "1776643199"
+          },
+          "flat_out_fast_spinner_begin": {
+            "varintValue": "1773673200"
+          },
+          "flat_out_fast_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "hilly_kom_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "hilly_kom_reward_spinner_ended": {
+            "varintValue": "1776643199"
+          },
+          "jarvis_kom_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "jarvis_kom_reward_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "mayan_san_remo_spinner_begin": {
+            "varintValue": "1773673200"
+          },
+          "mayan_san_remo_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "radio_tower_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "radio_tower_reward_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "sand_and_sequoias_spinner_begin": {
+            "varintValue": "1773673200"
+          },
+          "sand_and_sequoias_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "south_coast_cruise_spinner_begin": {
+            "varintValue": "1773673200"
+          },
+          "south_coast_cruise_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "stoneway_sprint_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "stoneway_sprint_reward_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "volcano_circuit_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "volcano_circuit_reward_spinner_ended": {
+            "varintValue": "1776668399"
+          },
+          "volcano_kom_reward_spinner_begin": {
+            "varintValue": "1772211600"
+          },
+          "volcano_kom_reward_spinner_ended": {
+            "varintValue": "1776668399"
           }
         }
       }
@@ -2214,7 +2280,7 @@
       "values": {
         "fields": {
           "version": {
-            "stringValue": "1.106.0"
+            "stringValue": "1.107.0"
           }
         }
       }
@@ -2359,7 +2425,8 @@
       }
     },
     {
-      "name": "game_uiupdateinupdate"
+      "name": "game_uiupdateinupdate",
+      "value": true
     },
     {
       "name": "game_user_storage_service",
@@ -2523,6 +2590,7 @@
     },
     {
       "name": "zwift_launcher_osx_rollout",
+      "value": true,
       "values": {
         "fields": {
           "ver_cur": {
@@ -2535,6 +2603,9 @@
       "name": "zwift_launcher_osx_silicon",
       "value": true,
       "values": {}
+    },
+    {
+      "name": "zwift_launcher_osx_use_local_appdata"
     },
     {
       "name": "zwift_launcher_update_interval",
@@ -2552,6 +2623,7 @@
     },
     {
       "name": "zwift_launcher_win_rollout",
+      "value": true,
       "values": {
         "fields": {
           "ver_cur": {
@@ -2559,6 +2631,9 @@
           }
         }
       }
+    },
+    {
+      "name": "zwift_launcher_win_use_local_appdata"
     }
   ]
 }

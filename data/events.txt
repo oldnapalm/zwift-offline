@@ -147,13 +147,6 @@
     "sport": 0
   },
   {
-    "name": "Makuri Islands - Neon Shore Loop",
-    "route": 3600776267,
-    "distance": 34074.9,
-    "course": 13,
-    "sport": 0
-  },
-  {
     "name": "New York - 2022 Cycling Esports World Championships Route",
     "route": 2436095601,
     "distance": 54964.1,
