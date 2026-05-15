@@ -1,5 +1,9 @@
 [
   {
+    "name": "Alto de Patios (5.9 km / 376 m)",
+    "road": "10052"
+  },
+  {
     "name": "Bealach na Ba (9 km / 632 m)",
     "road": "10011"
   },

@@ -24,6 +24,12 @@ message GameSettings {
     optional int32 streaks_flair_visuals = 11;
     optional int32 ride_stats_slot0 = 13;
     optional int32 ride_stats_slot1 = 14;
+    optional int32 workout_stats_slot0 = 15;
+    optional int32 workout_stats_slot1 = 16;
+    optional int32 workout_stats_slot2 = 17;
+    optional int32 workout_stats_slot3 = 18;
+    optional int32 ride_stats_workout_slot0 = 19;
+    optional int32 ride_stats_workout_slot1 = 20;
 }
 
 message GarageItemLastSelected {
@@ -60,7 +66,7 @@ message BikeUpgrade {
 }
 
 message DataCollectionConsent {
-    optional string device = 1;
+    optional string signature = 1;
     optional int32 consent = 2;
     optional uint64 time = 3;
 }
