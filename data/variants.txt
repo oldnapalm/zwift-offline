@@ -124,7 +124,7 @@
             "boolValue": true
           },
           "explore_button_enabled": {
-            "boolValue": true
+            "boolValue": false
           },
           "use_web_payment": {
             "boolValue": true
@@ -252,14 +252,7 @@
     },
     {
       "name": "game_1_104_quest_activity_cards",
-      "value": true,
-      "values": {
-        "fields": {
-          "excludeQuests": {
-            "stringValue": "gettingstarted,gettingstartedshort"
-          }
-        }
-      }
+      "value": true
     },
     {
       "name": "game_1_104_wftnp_advertising_fix",
@@ -273,7 +266,8 @@
       "value": true
     },
     {
-      "name": "game_1_105_zui_logout_earlier"
+      "name": "game_1_105_zui_logout_earlier",
+      "value": true
     },
     {
       "name": "game_1_106_zml_rnl",
@@ -290,15 +284,15 @@
       "name": "game_1_108_allow_experimental_uploading"
     },
     {
-      "name": "game_1_108_challenge_poster_cards"
+      "name": "game_1_108_challenge_poster_cards",
+      "value": true
     },
     {
       "name": "game_1_108_data_collection_consent",
       "value": true
     },
     {
-      "name": "game_1_108_known_devices_v2",
-      "values": {}
+      "name": "game_1_108_known_devices_v2"
     },
     {
       "name": "game_1_108_quest_activity_cards_sends_context",
@@ -335,25 +329,40 @@
       }
     },
     {
-      "name": "game_1_109_route_activity_card_xp"
-    },
-    {
-      "name": "game_1_110_april_fools_2026"
+      "name": "game_1_109_route_activity_card_xp",
+      "value": true
     },
     {
       "name": "game_1_110_auto_pairing_fixes"
     },
     {
-      "name": "game_1_110_customizable_workout_hud"
+      "name": "game_1_110_customizable_workout_hud",
+      "value": true,
+      "values": {
+        "fields": {
+          "bUseCustomizedHUD": {
+            "boolValue": true
+          }
+        }
+      }
     },
     {
       "name": "game_1_110_disable_sensor_relay_on_ble"
     },
     {
-      "name": "game_1_110_high_density_just_watch"
+      "name": "game_1_110_high_density_just_watch",
+      "value": true,
+      "values": {
+        "fields": {
+          "botCategory": {
+            "stringValue": "d"
+          }
+        }
+      }
     },
     {
-      "name": "game_1_110_prestige_badging"
+      "name": "game_1_110_prestige_badging",
+      "value": true
     },
     {
       "name": "game_1_110_prevent_auto_continue_when_background_pairing",
@@ -369,6 +378,36 @@
     {
       "name": "game_1_111_personalize_experience",
       "values": {}
+    },
+    {
+      "name": "game_1_111_remove_hero_quests_from_challenge_carousel",
+      "value": true
+    },
+    {
+      "name": "game_1_111_stop_calling_legacy_campaign_service",
+      "value": true
+    },
+    {
+      "name": "game_1_112_tune_experiment",
+      "value": true,
+      "values": {
+        "fields": {
+          "tune_button": {
+            "stringValue": "MORE OPTIONS"
+          }
+        }
+      }
+    },
+    {
+      "name": "game_1_112_use_steering_and_braking_on_zp",
+      "value": true
+    },
+    {
+      "name": "game_1_113_lan_timeout_lowering"
+    },
+    {
+      "name": "game_1_113_quest_xp_reward_icons",
+      "value": true
     },
     {
       "name": "game_1_15_assert_disable_abort",
@@ -486,20 +525,6 @@
         "fields": {
           "slope": {
             "numberValue": 0.04
-          }
-        }
-      }
-    },
-    {
-      "name": "game_1_34_hw_restrictions_forbidden_hw",
-      "value": true,
-      "values": {
-        "fields": {
-          "forbidden_device_name_list": {
-            "stringValue": "HR2VP"
-          },
-          "forbidden_manufacturers_name_list": {
-            "stringValue": "\"Apple Inc.\" \"Apple, Inc.\" \"FITSHOW\" \"Kettler GmbH\""
           }
         }
       }
@@ -642,10 +667,6 @@
     {
       "name": "game_1_45_climb_portal_achievements",
       "value": true,
-      "values": {}
-    },
-    {
-      "name": "game_1_46_virtual_shifting_leak_prevention",
       "values": {}
     },
     {
@@ -799,20 +820,6 @@
       }
     },
     {
-      "name": "game_1_49_pvs",
-      "value": true,
-      "values": {}
-    },
-    {
-      "name": "game_1_50_zc_rf1",
-      "value": true,
-      "values": {}
-    },
-    {
-      "name": "game_1_50_zc_rf2",
-      "values": {}
-    },
-    {
       "name": "game_1_51_zc_workout_asset_patch_fix",
       "value": true,
       "values": {}
@@ -839,21 +846,6 @@
     },
     {
       "name": "game_1_53_enable_hardcoded_repackrush__for_you_carousel__card"
-    },
-    {
-      "name": "game_1_53_update_payment_capture",
-      "values": {}
-    },
-    {
-      "name": "game_1_53_zp_sgpd",
-      "value": true,
-      "values": {
-        "fields": {
-          "DelayInMs": {
-            "varintValue": "800"
-          }
-        }
-      }
     },
     {
       "name": "game_1_53_zui_tp",
@@ -895,10 +887,6 @@
       "values": {}
     },
     {
-      "name": "game_1_56_subscribe_interstitial_25_km_free_tier",
-      "values": {}
-    },
-    {
       "name": "game_1_58_0_gender_to_event_category",
       "values": {}
     },
@@ -918,11 +906,6 @@
     },
     {
       "name": "game_1_62_tapi_workouts",
-      "value": true,
-      "values": {}
-    },
-    {
-      "name": "game_1_62_zp_user_input_device_event_logging",
       "value": true,
       "values": {}
     },
@@ -1138,17 +1121,12 @@
       }
     },
     {
-      "name": "game_1_70_device_identifier_analytics",
-      "value": true,
-      "values": {}
-    },
-    {
       "name": "game_1_71_challenge_carousel",
       "value": true,
       "values": {
         "fields": {
           "challenge_carousel_id": {
-            "stringValue": "prod_home_challenge_carousel"
+            "stringValue": "prod_home_challenge_carousel_1_113"
           }
         }
       }
@@ -1290,7 +1268,15 @@
       "values": {}
     },
     {
-      "name": "game_1_77_prevent_teleport_to_player_type"
+      "name": "game_1_77_prevent_teleport_to_player_type",
+      "value": true,
+      "values": {
+        "fields": {
+          "restricted_teleports": {
+            "stringValue": "{\"Player Type\":[{\"ZWIFT_STAFF,NORMAL,PRO_CYCLIST,AMBASSADOR,VERIFIED,ZED,ZAC,PRO_TRIATHLETE,PRO_RUNNER,\":[{\"World ID\":11,\"Road IDs\":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164]}]}]}"
+          }
+        }
+      }
     },
     {
       "name": "game_1_77_ttt_team_car_shows_znl_when_fanviewing",
@@ -1397,18 +1383,8 @@
       "values": {}
     },
     {
-      "name": "game_1_84_garage_badge",
-      "value": true,
-      "values": {}
-    },
-    {
       "name": "game_1_84_zp_over_ip",
       "value": true
-    },
-    {
-      "name": "game_1_85_challenge_cone",
-      "value": true,
-      "values": {}
     },
     {
       "name": "game_1_85_macos_network_privacy_workaround",
@@ -1462,10 +1438,6 @@
       }
     },
     {
-      "name": "game_1_88_multi_card_hero_carousel",
-      "values": {}
-    },
-    {
       "name": "game_1_88_timingarch_experiment_1",
       "values": {}
     },
@@ -1515,9 +1487,6 @@
           }
         }
       }
-    },
-    {
-      "name": "game_1_90_ios_link_to_web_payment_provider"
     },
     {
       "name": "game_1_90_use_web_onboarding_skill_level"
@@ -1613,8 +1582,7 @@
       }
     },
     {
-      "name": "game_1_98_aup",
-      "value": true
+      "name": "game_1_98_aup"
     },
     {
       "name": "game_1_98_prevent_creation_zp_controller_sensor_relay_sensor"
@@ -1840,7 +1808,7 @@
     },
     {
       "name": "game_camera_spill",
-      "values": {}
+      "value": true
     },
     {
       "name": "game_check_for_video_updates"
@@ -1937,7 +1905,7 @@
             "stringValue": "dlc_asset"
           },
           "build_id": {
-            "stringValue": "160088"
+            "stringValue": "160612"
           },
           "canary_test": {
             "boolValue": true
@@ -2064,52 +2032,28 @@
       }
     },
     {
-      "name": "game_hud_phase_2",
-      "value": true,
-      "values": {
-        "fields": {
-          "complex_segment_summary": {
-            "boolValue": true
-          },
-          "cp_data_update_pause": {
-            "boolValue": true
-          },
-          "critical_power_widget": {
-            "boolValue": true
-          },
-          "cycling_splits": {
-            "boolValue": true
-          },
-          "minimap_route_badge": {
-            "boolValue": true
-          },
-          "support_HSI_widget": {
-            "boolValue": true
-          },
-          "support_average_speed_widget": {
-            "boolValue": true
-          },
-          "support_average_wkg_widget": {
-            "boolValue": true
-          },
-          "support_body_temp_widget": {
-            "boolValue": true
-          },
-          "support_normalized_power_widget": {
-            "boolValue": true
-          },
-          "support_rl_balance_widget": {
-            "boolValue": true
-          }
-        }
-      }
-    },
-    {
       "name": "game_hvc_telemetry",
       "values": {}
     },
     {
-      "name": "game_instrumental_rock_bass"
+      "name": "game_instrumental_rock_bass",
+      "value": true,
+      "values": {
+        "fields": {
+          "end": {
+            "varintValue": "1783328400"
+          },
+          "ints": {
+            "stringValue": "1,11,1,1 2,11,0,1 4,11,3,0 4,11,0,1 5,11,1,0 5,11,1,1 3,11,1,0 6,11,0,1 7,11,1,1 7,11,3,1 9,11,0,0 0,11,0,0 8,11,3,0 8,11,0,0 10,11,1,1 730000,11,0,0 870000,11,1,1 1060000,11,0,0"
+          },
+          "routes": {
+            "stringValue": "3141079998,870135081,2805636083,1365497350,1247427185,3381223955,4234984253,2316916973,2128895616,565111133"
+          },
+          "start": {
+            "varintValue": "1775631600"
+          }
+        }
+      }
     },
     {
       "name": "game_lauterbrunnen",
@@ -2122,6 +2066,9 @@
         "fields": {
           "BankedXPMultiplier": {
             "varintValue": "2"
+          },
+          "BankedXPMultiplierFor100+": {
+            "varintValue": "4"
           },
           "DecoupleFromEntitlements": {
             "boolValue": true
@@ -2165,6 +2112,20 @@
             "boolValue": true
           },
           "minimap": {
+            "boolValue": true
+          }
+        }
+      }
+    },
+    {
+      "name": "game_os_deprecation_warning",
+      "value": true,
+      "values": {
+        "fields": {
+          "iOS": {
+            "stringValue": "15.0;2026/08/04"
+          },
+          "showInGameWarning": {
             "boolValue": true
           }
         }
@@ -2258,7 +2219,7 @@
       "values": {
         "fields": {
           "version": {
-            "stringValue": "1.111.0"
+            "stringValue": "1.113.0"
           }
         }
       }
@@ -2289,6 +2250,9 @@
       "name": "game_show_about_menu",
       "value": true,
       "values": {}
+    },
+    {
+      "name": "game_spatial_frame_time_telemetry"
     },
     {
       "name": "game_staged_quest_rewards_ui",
@@ -2398,16 +2362,9 @@
       }
     },
     {
-      "name": "game_uiupdateinupdate",
-      "value": true
-    },
-    {
       "name": "game_user_storage_service",
       "value": true,
       "values": {}
-    },
-    {
-      "name": "game_watopian_force_1080p"
     },
     {
       "name": "game_wd1_data_acq"
@@ -2425,6 +2382,9 @@
           },
           "goandigo": {
             "boolValue": false
+          },
+          "removebigspin2026": {
+            "boolValue": true
           },
           "tdf2025": {
             "boolValue": false
@@ -2472,8 +2432,8 @@
       "values": {}
     },
     {
-      "name": "gfx_waipio",
-      "value": true
+      "name": "gfx_romsdalen",
+      "values": {}
     },
     {
       "name": "gn_deferred_lighting",
@@ -2499,12 +2459,15 @@
       "values": {}
     },
     {
+      "name": "iterable_embedded_messages",
+      "values": {}
+    },
+    {
       "name": "kit_override_using_triggers",
       "values": {}
     },
     {
-      "name": "log_ble_packets",
-      "values": {}
+      "name": "log_ble_packets"
     },
     {
       "name": "mobile_cp_curve_fix",
@@ -2551,8 +2514,7 @@
       }
     },
     {
-      "name": "quest_service_awards_xp",
-      "values": {}
+      "name": "quest_service_awards_xp"
     },
     {
       "name": "quest_stage_cards",
