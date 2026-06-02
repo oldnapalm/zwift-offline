@@ -223,6 +223,7 @@ To obtain your current profile:
 
 <details><summary>Strava</summary>
 
+* __NOTE:__ as of June 2026, Strava requires an active paid subscription to access its public API.
 * Get CLIENT_ID and CLIENT_SECRET from https://www.strava.com/settings/api
 * __NOTE:__ instead of performing the steps below you can instead set the authorization callback domain of your API application to ``launcher.zwift.com`` and use the "Settings - Strava" button in the launcher window (Windows and macOS only).
 * Run ``scripts/strava_auth.py --client-id CLIENT_ID --client-secret CLIENT_SECRET``
