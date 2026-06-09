@@ -258,7 +258,8 @@
       "values": {}
     },
     {
-      "name": "game_1_106_zp_over_usb"
+      "name": "game_1_106_zp_over_usb",
+      "value": true
     },
     {
       "name": "game_1_107_assert_on_failed_device_set"
@@ -338,14 +339,7 @@
     },
     {
       "name": "game_1_110_high_density_just_watch",
-      "value": true,
-      "values": {
-        "fields": {
-          "botCategory": {
-            "stringValue": "d"
-          }
-        }
-      }
+      "values": {}
     },
     {
       "name": "game_1_110_prestige_badging",
@@ -405,15 +399,19 @@
       "name": "game_1_114_level_up_off_by_one_fix"
     },
     {
-      "name": "game_1_114_load_routes_early"
-    },
-    {
-      "name": "game_1_114_next_up_expandable_explanation",
+      "name": "game_1_114_load_routes_early",
       "value": true
     },
     {
+      "name": "game_1_114_next_up_expandable_explanation"
+    },
+    {
       "name": "game_1_114_next_up_quest_tag",
-      "values": {}
+      "value": true
+    },
+    {
+      "name": "game_1_115_disable_empty_leaderboard",
+      "value": true
     },
     {
       "name": "game_1_15_assert_disable_abort",
@@ -853,17 +851,6 @@
       "values": {}
     },
     {
-      "name": "game_1_54_orcd",
-      "value": true,
-      "values": {
-        "fields": {
-          "Delay": {
-            "varintValue": "6000"
-          }
-        }
-      }
-    },
-    {
       "name": "game_1_54_tdz_confetti_pattern",
       "value": true,
       "values": {}
@@ -1061,7 +1048,7 @@
     },
     {
       "name": "game_1_68_ble_discovery_analytics",
-      "values": {}
+      "value": true
     },
     {
       "name": "game_1_69_last_used",
@@ -1089,14 +1076,7 @@
       "values": {}
     },
     {
-      "name": "game_1_69_set_client_log_level",
-      "values": {
-        "fields": {
-          "logLevel": {
-            "stringValue": ""
-          }
-        }
-      }
+      "name": "game_1_69_set_client_log_level"
     },
     {
       "name": "game_1_71_challenge_carousel",
@@ -1104,7 +1084,7 @@
       "values": {
         "fields": {
           "challenge_carousel_id": {
-            "stringValue": "prod_home_challenge_carousel_1_113"
+            "stringValue": "prod_home_challenge_carousel_1_114"
           }
         }
       }
@@ -1484,8 +1464,7 @@
       "value": true
     },
     {
-      "name": "game_1_95_post_recommended_activity_survey",
-      "value": true
+      "name": "game_1_95_post_recommended_activity_survey"
     },
     {
       "name": "game_1_95_prevent_pairing_of_already_paired_ble_devices",
@@ -1696,6 +1675,9 @@
           },
           "reserve_57_rear_wheel": {
             "boolValue": false
+          },
+          "wilier_filante_2026": {
+            "boolValue": false
           }
         }
       }
@@ -1851,7 +1833,7 @@
             "stringValue": "dlc_asset"
           },
           "build_id": {
-            "stringValue": "161567"
+            "stringValue": "161915"
           },
           "canary_test": {
             "boolValue": true
@@ -2067,6 +2049,10 @@
       }
     },
     {
+      "name": "game_mochi_performance",
+      "values": {}
+    },
+    {
       "name": "game_nb_world_load",
       "values": {}
     },
@@ -2190,7 +2176,7 @@
       "values": {
         "fields": {
           "version": {
-            "stringValue": "1.114.0"
+            "stringValue": "1.115.0"
           }
         }
       }
@@ -2383,6 +2369,14 @@
           }
         }
       }
+    },
+    {
+      "name": "game_zop",
+      "values": {}
+    },
+    {
+      "name": "garage_item_manager",
+      "values": {}
     },
     {
       "name": "gfx_drawinstanced",
