@@ -403,7 +403,8 @@
       "value": true
     },
     {
-      "name": "game_1_114_next_up_expandable_explanation"
+      "name": "game_1_114_next_up_expandable_explanation",
+      "value": true
     },
     {
       "name": "game_1_114_next_up_quest_tag",
@@ -847,8 +848,7 @@
       }
     },
     {
-      "name": "game_1_54_m0b1",
-      "values": {}
+      "name": "game_1_54_m0b1"
     },
     {
       "name": "game_1_54_tdz_confetti_pattern",
@@ -1833,7 +1833,7 @@
             "stringValue": "dlc_asset"
           },
           "build_id": {
-            "stringValue": "161915"
+            "stringValue": "162267"
           },
           "canary_test": {
             "boolValue": true
@@ -2416,7 +2416,15 @@
       "values": {}
     },
     {
-      "name": "iterable_embedded_messages"
+      "name": "iterable_embedded_messages",
+      "value": true,
+      "values": {
+        "fields": {
+          "includeInChallengeCarousel": {
+            "boolValue": false
+          }
+        }
+      }
     },
     {
       "name": "log_ble_packets"
