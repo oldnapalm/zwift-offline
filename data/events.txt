@@ -142,28 +142,28 @@
   {
     "name": "Makuri Islands - Roundikaze",
     "route": 2919739330,
-    "distance": 18338.2,
+    "distance": 18422.6,
     "course": 13,
     "sport": 0
   },
   {
     "name": "Makuri Islands - Twilight Crit",
     "route": 362278484,
-    "distance": 3903.8,
+    "distance": 3969.7,
     "course": 13,
     "sport": 0
   },
   {
     "name": "Makuri Islands - Urumaze",
     "route": 4092230492,
-    "distance": 24755.2,
+    "distance": 24839.2,
     "course": 13,
     "sport": 0
   },
   {
     "name": "Makuri Islands - WhatYumeziWereLost",
     "route": 811898717,
-    "distance": 17561.3,
+    "distance": 17541.5,
     "course": 13,
     "sport": 0
   },
