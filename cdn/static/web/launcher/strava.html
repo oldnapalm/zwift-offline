@@ -49,6 +49,7 @@
       {% if cookie_set %}
         <p class="text-shadow">A session cookie is configured.</p>
         <a href="/delete/strava4_session.txt" class="btn btn-sm btn-danger">Remove free Strava session</a>
+        <a href="{{ url_for('strava_test', username=username) }}" class="btn btn-sm btn-secondary">Test session</a>
       {% endif %}
       <form action="{{ url_for('strava', username=username) }}" method="post">
         <div class="row">

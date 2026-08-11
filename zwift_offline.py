@@ -831,6 +831,26 @@ def strava(username):
     return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token, cookie_set=cookie_set, method=method)
 
 
+@app.route("/strava/<username>/test", methods=["GET"])
+@login_required
+def strava_test(username):
+    cookie_file = '%s/%s/strava4_session.txt' % (STORAGE_DIR, current_user.player_id)
+    if not os.path.isfile(cookie_file):
+        flash("No free Strava session configured.")
+        return redirect(url_for('strava', username=current_user.username))
+    try:
+        with open(cookie_file) as f:
+            cookie = f.readline().rstrip('\r\n')
+        if free_strava.check_session(cookie):
+            flash("Free Strava session is valid.")
+        else:
+            flash("Free Strava session is not valid. Update the cookie.")
+    except Exception as exc:
+        logger.warning("strava_test: %s" % repr(exc))
+        flash("Could not reach Strava. Check your internet connection.")
+    return redirect(url_for('strava', username=current_user.username))
+
+
 @app.route("/strava_auth", methods=['GET'])
 @login_required
 def strava_auth():

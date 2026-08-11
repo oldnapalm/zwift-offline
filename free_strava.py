@@ -50,10 +50,19 @@ def rename(s, act, aid, name, sport_type, token):
         raise RuntimeError("Failed to set name: %s" % r.text)
 
 
-def upload_activity(cookie, filename, fit, name):
+def new_session(cookie):
     s = Session()
     s.headers["User-Agent"] = USER_AGENT
     s.cookies.set("_strava4_session", cookie, domain=".strava.com", path="/")
+    return s
+
+
+def check_session(cookie):
+    return "Upload and Sync Your Activities" in new_session(cookie).get(SELECT_URL).text
+
+
+def upload_activity(cookie, filename, fit, name):
+    s = new_session(cookie)
 
     response = s.get(SELECT_URL)
     if "Upload and Sync Your Activities" not in response.text:
