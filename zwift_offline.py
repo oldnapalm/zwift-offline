@@ -807,14 +807,19 @@ def strava(username):
     token = os.path.isfile('%s/strava_token.txt' % profile_dir)
     cookie_file = '%s/strava4_session.txt' % profile_dir
     cookie_set = os.path.isfile(cookie_file)
+    cookie = ''
+    if cookie_set:
+        with open(cookie_file) as f:
+            cookie = f.readline().rstrip('\r\n')
     method = strava_upload_method(current_user.player_id)
     if request.method == "POST":
         if '_strava4_session' in request.form:
             if request.form['_strava4_session'] == "":
                 flash("Free Strava session cookie can't be empty.")
             else:
+                cookie = request.form['_strava4_session']
                 with open(cookie_file, 'w') as f:
-                    f.write(request.form['_strava4_session'])
+                    f.write(cookie)
                 cookie_set = True
                 flash("Free Strava session cookie saved.")
         elif 'method' in request.form:
@@ -828,7 +833,7 @@ def strava(username):
         else:
             encrypt_credentials(api, (request.form['client_id'], request.form['client_secret']))
     cred = decrypt_credentials(api)
-    return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token, cookie_set=cookie_set, method=method)
+    return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token, cookie_set=cookie_set, cookie=cookie, method=method)
 
 
 @app.route("/strava/<username>/test", methods=["GET"])
@@ -1404,7 +1409,7 @@ def download_avatarLarge(player_id):
 @login_required
 def delete(filename):
     credentials = ['zwift_credentials.bin', 'intervals_credentials.bin']
-    strava = ['strava_api.bin', 'strava_token.txt', 'strava4_session.txt', 'strava_upload_method.txt']
+    strava = ['strava_api.bin', 'strava_token.txt', 'strava4_session.txt']
     garmin = ['garmin_credentials.bin', 'garth/oauth1_token.json']
     if filename not in credentials + strava + garmin:
         return '', 403
