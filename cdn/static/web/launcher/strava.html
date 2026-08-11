@@ -55,6 +55,21 @@
       {% endwith %}
     </div>
     <div class="col-sm-6 col-md-5 top-buffer">
+    {% if method == "free" %}
+      <form id="strava" action="{{ url_for('strava', username=username) }}" method="post">
+        <div class="row">
+          <div class="col-md-12">
+            <label class="col-form-label col-form-label-sm text-shadow">_strava4_session</label>
+            <input type="text" id="_strava4_session" name="_strava4_session" value="{{ cookie }}" class="form-control form-control-sm">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 top-buffer">
+            <input type="submit" value="Save session" class="btn btn-sm btn-light">
+          </div>
+        </div>
+      </form>
+    {% else %}
       <form id="strava" action="{{ url_for('strava', username=username) }}" method="post">
         <div class="row">
           <div class="col-md-12">
@@ -72,19 +87,7 @@
           </div>
         </div>
       </form>
-      <form action="{{ url_for('strava', username=username) }}" method="post" class="top-buffer">
-        <div class="row">
-          <div class="col-md-12">
-            <label class="col-form-label col-form-label-sm text-shadow">_strava4_session</label>
-            <input type="text" id="_strava4_session" name="_strava4_session" value="{{ cookie }}" class="form-control form-control-sm">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12 top-buffer">
-            <input type="submit" value="Save session" class="btn btn-sm btn-light">
-          </div>
-        </div>
-      </form>
+    {% endif %}
     </div>
   </div>
 {% endblock %}
