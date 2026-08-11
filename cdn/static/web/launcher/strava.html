@@ -15,12 +15,14 @@
       {% elif cid and cs %}
         <a href="{{ url_for('strava_auth') }}" class="btn btn-sm btn-secondary">Authorize</a>
       {% endif %}
+      {% if cookie_set %}
+        <a href="/delete/strava4_session.txt" class="btn btn-sm btn-danger">Remove session</a>
+        <a href="{{ url_for('strava_test', username=username) }}" class="btn btn-sm btn-secondary">Test session</a>
+      {% endif %}
     </div>
   </div>
   <div class="row">
     <div class="col-sm-6 col-md-5 top-buffer">
-      <h5><div class="text-shadow">Upload method</div></h5>
-      <p class="text-shadow">Strava now requires a paid subscription to use its public API. The free method uploads using your browser session cookie instead.</p>
       <form action="{{ url_for('strava', username=username) }}" method="post">
         <div class="row">
           <div class="col-md-12">
@@ -40,33 +42,18 @@
           </div>
         </div>
       </form>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="list-group top-buffer">
+          {% for message in messages %}
+            <li class="list-group-item py-2">
+              <div class="text-shadow">{{ message }}</div>
+            </li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
     </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-6 col-md-5 top-buffer">
-      <h5><div class="text-shadow">Free Strava session cookie</div></h5>
-      <p class="text-shadow">Log in to https://www.strava.com in your browser, open the developer tools (F12) - Console and run <code>document.cookie</code>, then copy the value of <code>_strava4_session=...</code> into the field below.</p>
-      {% if cookie_set %}
-        <p class="text-shadow">A session cookie is configured.</p>
-        <a href="/delete/strava4_session.txt" class="btn btn-sm btn-danger">Remove free Strava session</a>
-        <a href="{{ url_for('strava_test', username=username) }}" class="btn btn-sm btn-secondary">Test session</a>
-      {% endif %}
-      <form action="{{ url_for('strava', username=username) }}" method="post">
-        <div class="row">
-          <div class="col-md-12">
-            <label class="col-form-label col-form-label-sm text-shadow">_strava4_session</label>
-            <input type="text" id="_strava4_session" name="_strava4_session" class="form-control form-control-sm">
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12 top-buffer">
-            <input type="submit" value="Save session" class="btn btn-sm btn-light">
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-  <div class="row">
     <div class="col-sm-6 col-md-5 top-buffer">
       <form id="strava" action="{{ url_for('strava', username=username) }}" method="post">
         <div class="row">
@@ -85,17 +72,19 @@
           </div>
         </div>
       </form>
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          <ul class="list-group top-buffer">
-          {% for message in messages %}
-            <li class="list-group-item py-2">
-              <div class="text-shadow">{{ message }}</div>
-            </li>
-          {% endfor %}
-          </ul>
-        {% endif %}
-      {% endwith %}
+      <form action="{{ url_for('strava', username=username) }}" method="post" class="top-buffer">
+        <div class="row">
+          <div class="col-md-12">
+            <label class="col-form-label col-form-label-sm text-shadow">_strava4_session</label>
+            <input type="text" id="_strava4_session" name="_strava4_session" class="form-control form-control-sm">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 top-buffer">
+            <input type="submit" value="Save session" class="btn btn-sm btn-light">
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 {% endblock %}
