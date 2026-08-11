@@ -66,6 +66,7 @@ import intervals_workouts
 import trainingpeaks_workouts
 import workout_state
 import workouts_manifest
+import free_strava
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 logger = logging.getLogger('zoffline')
@@ -790,19 +791,44 @@ def reset(username):
     return render_template("reset.html", username=current_user.username)
 
 
+def strava_upload_method(player_id):
+    file = '%s/%s/strava_upload_method.txt' % (STORAGE_DIR, player_id)
+    if not os.path.exists(file):
+        return 'paid'
+    with open(file) as f:
+        return f.readline().rstrip('\r\n')
+
+
 @app.route("/strava/<username>/", methods=["GET", "POST"])
 @login_required
 def strava(username):
     profile_dir = '%s/%s' % (STORAGE_DIR, current_user.player_id)
     api = '%s/strava_api.bin' % profile_dir
     token = os.path.isfile('%s/strava_token.txt' % profile_dir)
+    cookie_file = '%s/strava4_session.txt' % profile_dir
+    cookie_set = os.path.isfile(cookie_file)
+    method = strava_upload_method(current_user.player_id)
     if request.method == "POST":
-        if request.form['client_id'] == "" or request.form['client_secret'] == "":
+        if '_strava4_session' in request.form:
+            if request.form['_strava4_session'] == "":
+                flash("Free Strava session cookie can't be empty.")
+            else:
+                with open(cookie_file, 'w') as f:
+                    f.write(request.form['_strava4_session'])
+                cookie_set = True
+                flash("Free Strava session cookie saved.")
+        elif 'method' in request.form:
+            if request.form['method'] in ('paid', 'free'):
+                method = request.form['method']
+                with open('%s/strava_upload_method.txt' % profile_dir, 'w') as f:
+                    f.write(method)
+                flash("Strava upload method saved.")
+        elif request.form['client_id'] == "" or request.form['client_secret'] == "":
             flash("Client ID and secret can't be empty.")
-            return render_template("strava.html", username=current_user.username, token=token)
-        encrypt_credentials(api, (request.form['client_id'], request.form['client_secret']))
+        else:
+            encrypt_credentials(api, (request.form['client_id'], request.form['client_secret']))
     cred = decrypt_credentials(api)
-    return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token)
+    return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token, cookie_set=cookie_set, method=method)
 
 
 @app.route("/strava_auth", methods=['GET'])
@@ -1358,7 +1384,7 @@ def download_avatarLarge(player_id):
 @login_required
 def delete(filename):
     credentials = ['zwift_credentials.bin', 'intervals_credentials.bin']
-    strava = ['strava_api.bin', 'strava_token.txt']
+    strava = ['strava_api.bin', 'strava_token.txt', 'strava4_session.txt', 'strava_upload_method.txt']
     garmin = ['garmin_credentials.bin', 'garth/oauth1_token.json']
     if filename not in credentials + strava + garmin:
         return '', 403
@@ -2600,6 +2626,23 @@ def strava_upload(player_id, activity):
         logger.warning("Strava upload failed. No internet? %s" % repr(exc))
 
 
+def free_strava_upload(player_id, activity):
+    file = '%s/%s/strava4_session.txt' % (STORAGE_DIR, player_id)
+    if not os.path.exists(file):
+        logger.info("strava4_session.txt missing, skip free Strava activity update")
+        return
+    try:
+        with open(file) as f:
+            cookie = f.readline().rstrip('\r\n')
+    except Exception as exc:
+        logger.warning("Failed to read %s. Skipping free Strava upload attempt: %s" % (file, repr(exc)))
+        return
+    try:
+        free_strava.upload_activity(cookie, activity.fit_filename, activity.fit, activity.name)
+    except Exception as exc:
+        logger.warning("Free Strava upload failed. No internet? %s" % repr(exc))
+
+
 def garmin_upload(player_id, activity):
     try:
         import garth
@@ -2740,7 +2783,10 @@ def save_ghost(player_id, name):
             fd.write(ghosts.rec.SerializeToString())
 
 def activity_uploads(player_id, activity):
-    strava_upload(player_id, activity)
+    if strava_upload_method(player_id) == 'free':
+        free_strava_upload(player_id, activity)
+    else:
+        strava_upload(player_id, activity)
     garmin_upload(player_id, activity)
     runalyze_upload(player_id, activity)
     intervals_upload(player_id, activity)
