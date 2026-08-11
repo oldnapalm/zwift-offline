@@ -233,7 +233,7 @@ To obtain your current profile:
   * Or, if using the Windows zoffline.exe version without Python installed you can run ``strava_auth.exe`` obtained from https://github.com/oldnapalm/zoffline-helper/releases/latest in place of ``scripts/strava_auth.py``
 * Open http://localhost:8000/ and authorize.
 * Move the resulting ``strava_token.txt`` (saved in whatever directory you ran ``strava_auth.py`` in) into the ``storage/1`` directory.
-* For the free method, open the launcher "Settings - Strava" page (or https://127.0.0.1/strava/zoffline/), select "Free (browser session cookie)", and paste the ``_strava4_session`` value. To get it, log in to https://www.strava.com in a browser, open the developer tools (F12) - Console, run ``document.cookie``, and copy the value of ``_strava4_session=...``. Rides are uploaded as ``VirtualRide`` with the activity name.
+* For the free method, open the launcher "Settings - Strava" page (or ``https://<zoffline_ip>/strava/zoffline/``), select "Free (browser session cookie)" and paste the ``_strava4_session`` value. To get it, log in to https://www.strava.com in a browser, open the developer tools (F12) and navigate to "Application - Storage - Cookies". Rides are uploaded as ``VirtualRide`` with the activity name.
 * Automatic screenshots upload is not possible, see [#28](https://github.com/zoffline/zwift-offline/issues/28) for details.
 
 </details>
