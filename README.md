@@ -223,18 +223,18 @@ To obtain your current profile:
 
 <details><summary>Strava</summary>
 
-* __NOTE:__ as of June 2026, Strava requires an active paid subscription to access its public API.
-* Two upload methods are available and can be selected under "Settings - Strava":
-  * __Strava API (paid):__ requires a paid Strava subscription.
-  * __Free (browser session cookie):__ uploads using the ``_strava4_session`` cookie from your browser, no API application needed.
-* Get CLIENT_ID and CLIENT_SECRET from https://www.strava.com/settings/api
-* __NOTE:__ instead of performing the steps below you can instead set the authorization callback domain of your API application to ``launcher.zwift.com`` and use the "Settings - Strava" button in the launcher window (Windows and macOS only).
-* Run ``scripts/strava_auth.py --client-id CLIENT_ID --client-secret CLIENT_SECRET``
-  * Or, if using the Windows zoffline.exe version without Python installed you can run ``strava_auth.exe`` obtained from https://github.com/oldnapalm/zoffline-helper/releases/latest in place of ``scripts/strava_auth.py``
-* Open http://localhost:8000/ and authorize.
-* Move the resulting ``strava_token.txt`` (saved in whatever directory you ran ``strava_auth.py`` in) into the ``storage/1`` directory.
-* For the free method, open the launcher "Settings - Strava" page (or ``https://<zoffline_ip>/strava/zoffline/``), select "Free (browser session cookie)" and paste the ``_strava4_session`` value. To get it, log in to https://www.strava.com in a browser, open the developer tools (F12) and navigate to "Application - Storage - Cookies". Rides are uploaded as ``VirtualRide`` with the activity name.
-* Automatic screenshots upload works with the free method but not using the API, see [#28](https://github.com/zoffline/zwift-offline/issues/28) for details.
+* Two upload methods are available and can be selected on the "Settings - Strava" page of the launcher (if using Android, access ``https://<zoffline_ip>/strava/zoffline/``):
+  * __API application (requires an active paid subscription):__
+    * Get CLIENT_ID and CLIENT_SECRET from https://www.strava.com/settings/api
+    * __NOTE:__ instead of performing the steps below you can instead set the authorization callback domain of your API application to ``launcher.zwift.com`` and use the "Settings - Strava" page of the launcher (Windows and macOS only).
+    * Run ``scripts/strava_auth.py --client-id CLIENT_ID --client-secret CLIENT_SECRET``
+      * Or, if using the Windows zoffline.exe version without Python installed you can run ``strava_auth.exe`` obtained from https://github.com/oldnapalm/zoffline-helper/releases/latest in place of ``scripts/strava_auth.py``
+    * Open http://localhost:8000/ and authorize.
+    * Move the resulting ``strava_token.txt`` (saved in whatever directory you ran ``strava_auth.py`` in) into the ``storage/1`` directory.
+  * __Browser session cookie (free):__
+    * Log in to https://www.strava.com in a browser, open the developer tools (F12), navigate to "Application - Storage - Cookies" and copy the ``_strava4_session`` cookie value.
+    * Paste and save the value on the "Settings - Strava" page of the launcher.
+* Automatic screenshots uploading works with the session cookie method, but not with the API. See [#28](https://github.com/zoffline/zwift-offline/issues/28) for details.
 
 </details>
 
