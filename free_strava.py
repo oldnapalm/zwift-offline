@@ -1,5 +1,7 @@
+import os
 import re
 import time
+import uuid
 from io import BytesIO
 from html import unescape
 from requests import Session
@@ -9,6 +11,9 @@ UPLOAD_URL = "https://www.strava.com/upload/files"
 SELECT_URL = "https://www.strava.com/upload/select"
 PROGRESS_URL = "https://www.strava.com/upload/progress.json"
 BULK_UPDATE_URL = "https://www.strava.com/athlete/training_activities/bulk_update"
+PHOTO_METADATA_URL = "https://www.strava.com/photos/metadata"
+EDIT_URL = "https://www.strava.com/activities/%s/edit"
+ACTIVITY_URL = "https://www.strava.com/activities/%s"
 SPORT_TYPE = "VirtualRide"
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
@@ -61,7 +66,90 @@ def check_session(cookie):
     return "Upload and Sync Your Activities" in new_session(cookie).get(SELECT_URL).text
 
 
-def upload_activity(cookie, filename, fit, name):
+def parse_form(form):
+    data = {}
+    for m in re.finditer(r"<input\b[^>]*>", form):
+        tag = m.group(0)
+        if re.search(r"\bdisabled\b|\btype=[\"'](?:submit|button|file)[\"']", tag):
+            continue
+        name = re.search(r'name="([^"]+)"', tag)
+        if not name:
+            continue
+        name = unescape(name.group(1))
+        val = re.search(r'value="([^"]*)"', tag)
+        val = unescape(val.group(1)) if val else ""
+        if re.search(r'type="checkbox"', tag):
+            if re.search(r"\bchecked\b", tag):
+                data[name] = val or "1"
+        else:
+            data[name] = val
+    for m in re.finditer(r"<select\b[^>]*>.*?</select>", form, re.S):
+        tag = m.group(0)
+        if re.search(r"\bdisabled\b", tag):
+            continue
+        name = re.search(r'name="([^"]+)"', tag)
+        if not name:
+            continue
+        opts = re.findall(r"<option\b([^>]*)>([^<]*)</option>", tag)
+        if not opts:
+            continue
+        sel = [v for a, v in opts if "selected" in a]
+        data[unescape(name.group(1))] = unescape((sel or [opts[0][1]])[0])
+    for m in re.finditer(r"<textarea\b[^>]*>.*?</textarea>", form, re.S):
+        tag = m.group(0)
+        name = re.search(r'name="([^"]+)"', tag)
+        if not name:
+            continue
+        val = re.search(r">(.*)</textarea>", tag, re.S)
+        data[unescape(name.group(1))] = unescape(val.group(1)) if val else ""
+    return data
+
+
+def attach_photos(s, aid, photos):
+    edit = s.get(EDIT_URL % aid)
+    if not edit.ok:
+        raise RuntimeError("Unable to get activity edit page")
+    m = re.search(r'name="authenticity_token" value="([^"]+)"', edit.text)
+    if not m:
+        raise RuntimeError("Cannot find authenticity token on edit page")
+    token = unescape(m.group(1))
+    m = re.search(r"var athleteId = (\d+);", edit.text)
+    if not m:
+        raise RuntimeError("Cannot find athlete id on edit page")
+    athlete_id = int(m.group(1))
+    m = re.search(r'<form class="edit_activity".*?</form>', edit.text, re.S)
+    if not m:
+        raise RuntimeError("Cannot find edit form on edit page")
+    data = parse_form(m.group(0))
+    count = 0
+    for photo in photos:
+        uid = str(uuid.uuid4())
+        taken_at = int(os.path.getmtime(photo) * 1000)
+        r = s.put(
+            PHOTO_METADATA_URL,
+            data={"athlete_id": athlete_id, "uuid": uid, "taken_at": taken_at},
+            headers={"X-CSRF-Token": token},
+        )
+        if not r.ok:
+            raise RuntimeError("Photo metadata failed: %s" % photo)
+        meta = r.json()
+        with open(photo, "rb") as f:
+            raw = f.read()
+        r = s.put(meta["uri"], data=raw, headers=meta["header"])
+        if not r.ok:
+            raise RuntimeError("Photo upload failed: %s" % photo)
+        data["photos[%s][caption]" % uid] = ""
+        data["photos[%s][rank]" % uid] = str(count)
+        data["photos[%s][media_type]" % uid] = "1"
+        count += 1
+    if not count:
+        return
+    r = s.post(ACTIVITY_URL % aid, data=data)
+    if not r.ok:
+        raise RuntimeError("Failed to save photos on activity: %s" % r.text[:200])
+
+
+def upload_activity(cookie, filename, fit, name, photos=()):
     s = new_session(cookie)
 
     response = s.get(SELECT_URL)
@@ -97,3 +185,5 @@ def upload_activity(cookie, filename, fit, name):
         if not aid:
             raise RuntimeError("No activity id in upload response")
         rename(s, act, aid, name, SPORT_TYPE, token)
+        if photos:
+            attach_photos(s, aid, photos)

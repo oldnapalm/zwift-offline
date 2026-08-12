@@ -2663,7 +2663,9 @@ def free_strava_upload(player_id, activity):
         logger.warning("Failed to read %s. Skipping free Strava upload attempt: %s" % (file, repr(exc)))
         return
     try:
-        free_strava.upload_activity(cookie, activity.fit_filename, activity.fit, activity.name)
+        photos = [path for img in ActivityImage.query.filter_by(player_id=player_id, activity_id=activity.id)
+                  if os.path.exists(path := '%s/%s/images/%s.jpg' % (STORAGE_DIR, player_id, img.id))]
+        free_strava.upload_activity(cookie, activity.fit_filename, activity.fit, activity.name, photos=photos)
     except Exception as exc:
         logger.warning("Free Strava upload failed. No internet? %s" % repr(exc))
 
