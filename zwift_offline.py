@@ -806,22 +806,20 @@ def strava(username):
     api = '%s/strava_api.bin' % profile_dir
     token = os.path.isfile('%s/strava_token.txt' % profile_dir)
     cookie_file = '%s/strava4_session.txt' % profile_dir
-    cookie_set = os.path.isfile(cookie_file)
     cookie = ''
-    if cookie_set:
+    if os.path.isfile(cookie_file):
         with open(cookie_file) as f:
             cookie = f.readline().rstrip('\r\n')
     method = strava_upload_method(current_user.player_id)
     if request.method == "POST":
         if '_strava4_session' in request.form:
             if request.form['_strava4_session'] == "":
-                flash("Free Strava session cookie can't be empty.")
+                flash("Session cookie can't be empty.")
             else:
                 cookie = request.form['_strava4_session']
                 with open(cookie_file, 'w') as f:
                     f.write(cookie)
-                cookie_set = True
-                flash("Free Strava session cookie saved.")
+                flash("Session cookie saved.")
         elif 'method' in request.form:
             if request.form['method'] in ('paid', 'free'):
                 method = request.form['method']
@@ -833,7 +831,7 @@ def strava(username):
         else:
             encrypt_credentials(api, (request.form['client_id'], request.form['client_secret']))
     cred = decrypt_credentials(api)
-    return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token, cookie_set=cookie_set, cookie=cookie, method=method)
+    return render_template("strava.html", username=current_user.username, cid=cred[0], cs=cred[1], token=token, cookie=cookie, method=method)
 
 
 @app.route("/strava/<username>/test", methods=["GET"])
@@ -841,15 +839,15 @@ def strava(username):
 def strava_test(username):
     cookie_file = '%s/%s/strava4_session.txt' % (STORAGE_DIR, current_user.player_id)
     if not os.path.isfile(cookie_file):
-        flash("No free Strava session configured.")
+        flash("No session configured.")
         return redirect(url_for('strava', username=current_user.username))
     try:
         with open(cookie_file) as f:
             cookie = f.readline().rstrip('\r\n')
         if free_strava.check_session(cookie):
-            flash("Free Strava session is valid.")
+            flash("Session is valid.")
         else:
-            flash("Free Strava session is not valid. Update the cookie.")
+            flash("Session is not valid. Update the cookie.")
     except Exception as exc:
         logger.warning("strava_test: %s" % repr(exc))
         flash("Could not reach Strava. Check your internet connection.")
