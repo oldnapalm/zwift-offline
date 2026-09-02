@@ -13,7 +13,6 @@ import math
 import threading
 import re
 import smtplib
-import ssl
 import requests
 import json
 import base64
@@ -29,6 +28,7 @@ from shutil import copyfile
 from flask import Flask, request, jsonify, redirect, render_template, url_for, flash, session, make_response, send_file, send_from_directory
 from flask_login import UserMixin, AnonymousUserMixin, LoginManager, login_user, current_user, login_required, logout_user
 from gevent.pywsgi import WSGIServer
+from gevent import ssl
 from google.protobuf.json_format import MessageToDict, Parse
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -39,6 +39,7 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from collections import deque
 from itertools import islice
+from stravalib.client import Client
 
 sys.path.append(os.path.join(sys.path[0], 'protobuf')) # otherwise import in .proto does not work
 import udp_node_msgs_pb2
@@ -138,8 +139,7 @@ if os.path.exists(GARMIN_DOMAIN_FILE):
         GARMIN_DOMAIN = f.readline().rstrip('\r\n')
 
 import warnings
-with warnings.catch_warnings():
-    from stravalib.client import Client
+warnings.simplefilter("ignore")
 
 from tokens import *
 
@@ -2102,7 +2102,8 @@ def update_entitlements(profile):
     e.id = -1
     e.status = profile_pb2.ProfileEntitlement.ProfileEntitlementStatus.ACTIVE
     if os.path.isfile('%s/unlock_entitlements.txt' % STORAGE_DIR) or os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
-        ent = json.load(open('%s/data/entitlements.txt' % SCRIPT_DIR))
+        with open('%s/data/entitlements.txt' % SCRIPT_DIR) as f:
+            ent = json.load(f)
         entitlements = list(range(ent['first'], ent['last'] + 1))
         if os.path.isfile('%s/unlock_all_equipment.txt' % STORAGE_DIR):
             entitlements.extend(list(range(1, ent['first'])))
@@ -3192,7 +3193,7 @@ def fill_in_goal_progress(goal, player_id):
                     WHERE player_id = :p AND sport = :s
                     AND strftime('%s', start_date) >= strftime('%s', :f)
                     AND strftime('%s', start_date) <= strftime('%s', :l)"""
-    args = {"p": player_id, "s": goal.sport, "f": first_dt, "l": last_dt}
+    args = {"p": player_id, "s": goal.sport, "f": first_dt.isoformat(), "l": last_dt.isoformat()}
     if goal.type == goal_pb2.GoalType.DISTANCE:
         distance = db.session.execute(sqlalchemy.text('SELECT SUM(distanceInMeters) %s' % common_sql), args).first()[0]
         if distance:
@@ -4049,7 +4050,8 @@ def relay_worlds_leave(server_realm):
 def load_variants(file):
     vs = variants_pb2.FeatureResponse()
     try:
-        Parse(open(file).read(), vs)
+        with open(file) as f:
+            Parse(f.read(), vs)
     except Exception as exc:
         logger.warning("load_variants: %s" % repr(exc))
     variants = {}
@@ -4250,7 +4252,7 @@ def ewma(player_id, date, days):
     for i in range(days - 1, -1, -1):
         day = date - datetime.timedelta(days=i)
         stmt = sqlalchemy.text("SELECT SUM(tss) FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
-        row = db.session.execute(stmt, {"p": player_id, "d": day}).first()
+        row = db.session.execute(stmt, {"p": player_id, "d": day.isoformat()}).first()
         tss = row[0] if row[0] else 0
         yesterday = today
         today = yesterday * math.e ** (-1 / days) + tss * (1 - math.e ** (-1 / days))
@@ -4282,7 +4284,7 @@ def api_fitness_metrics_and_goals():
             start, end = get_week_range(date - datetime.timedelta(days=i * 7))
             stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
                 FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
-            row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
+            row = db.session.execute(stmt, {"p": current_user.player_id, "s": start.isoformat(), "e": end.isoformat()}).first()
             week = {"startOfWeek": start.strftime('%Y-%m-%d'), "totalDistanceKilometers": row[0] / 1000 if row[0] else 0,
                 "totalElevationMeters": int(row[1]) if row[1] else 0, "totalDurationMinutes": int(row[2] / 60000) if row[2] else 0,
                 "totalKilojoules": int(row[3]) if row[3] else 0, "totalCalories": int(row[4]) if row[4] else 0,
@@ -4295,7 +4297,7 @@ def api_fitness_metrics_and_goals():
                 day = start + datetime.timedelta(days=i)
                 stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
                     FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
-                row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
+                row = db.session.execute(stmt, {"p": current_user.player_id, "d": day.isoformat()}).first()
                 if row[0]:
                     d = {"day": day.strftime('%a').lower(), "distanceKilometers": row[0] / 1000, "elevationMeters": int(row[1]) if row[1] else 0,
                         "durationMinutes": int(row[2] / 60000) if row[2] else 0, "kilojoules": int(row[3]) if row[3] else 0,
@@ -4303,7 +4305,7 @@ def api_fitness_metrics_and_goals():
                         "powerZonePercentages": {"1": 1, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 0}, "givenXp": 0}
                     zones = [0] * 7
                     stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
-                    for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
+                    for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day.isoformat()}):
                         if row.power_zones:
                             zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
                     total = sum(zones)
@@ -4328,7 +4330,7 @@ def api_fitness_metrics_and_goals():
             week.start = start.strftime('%Y-%m-%d')
             stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
                 FROM activity WHERE player_id = :p AND strftime('%s', start_date) >= strftime('%s', :s) AND strftime('%s', start_date) <= strftime('%s', :e)""")
-            row = db.session.execute(stmt, {"p": current_user.player_id, "s": start, "e": end}).first()
+            row = db.session.execute(stmt, {"p": current_user.player_id, "s": start.isoformat(), "e": end.isoformat()}).first()
             end_date = end if end < datetime.datetime.now(datetime.timezone.utc) else datetime.datetime.now(datetime.timezone.utc)
             week.fitness_score = ewma(current_user.player_id, end_date, 42)
             week.status = training_status(week.fitness_score, ewma(current_user.player_id, end_date, 7))
@@ -4342,7 +4344,7 @@ def api_fitness_metrics_and_goals():
                 day = start + datetime.timedelta(days=i)
                 stmt = sqlalchemy.text("""SELECT SUM(distanceInMeters), SUM(total_elevation), SUM(movingTimeInMs), SUM(work), SUM(calories), SUM(tss)
                     FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)""")
-                row = db.session.execute(stmt, {"p": current_user.player_id, "d": day}).first()
+                row = db.session.execute(stmt, {"p": current_user.player_id, "d": day.isoformat()}).first()
                 if row[0]:
                     d = week.days.add()
                     d.day = day.strftime('%a').lower()
@@ -4354,7 +4356,7 @@ def api_fitness_metrics_and_goals():
                     d.tss = row[5] if row[5] else 0
                     zones = [0] * 7
                     stmt = sqlalchemy.text("SELECT power_zones FROM activity WHERE player_id = :p AND strftime('%F', start_date) = strftime('%F', :d)")
-                    for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day}):
+                    for row in db.session.execute(stmt, {"p": current_user.player_id, "d": day.isoformat()}):
                         if row.power_zones:
                             zones = [a + b for a, b in zip(zones, json.loads(row.power_zones))]
                     total = sum(zones)
@@ -4779,10 +4781,10 @@ def run_standalone(passed_online, passed_global_relay, passed_global_pace_partne
     use_cert = os.environ.get('ZOFFLINE_API_USE_CERT', 'true').lower() == 'true'
     if host != SERVER_HOST or port != 443 or not use_cert:
         logger.info("Listening on %s:%d using certificate: %s", host, port, use_cert)
-    cert_kwargs = {'certfile': '%s/cert-zwift-com.pem' % SSL_DIR, 'keyfile': '%s/key-zwift-com.pem' % SSL_DIR}
-    if not use_cert:
-        cert_kwargs = {}
-    server = CleanWSGIServer((host, port), app, log=logger, **cert_kwargs)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    if use_cert:
+        context.load_cert_chain(certfile='%s/cert-zwift-com.pem' % SSL_DIR, keyfile='%s/key-zwift-com.pem' % SSL_DIR)
+    server = CleanWSGIServer((host, port), app, log=logger, ssl_context=context)
     server.serve_forever()
 
 #    app.run(ssl_context=('%s/cert-zwift-com.pem' % SSL_DIR, '%s/key-zwift-com.pem' % SSL_DIR), port=443, threaded=True, host=SERVER_HOST) # debug=True, use_reload=False)
