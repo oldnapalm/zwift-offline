@@ -47,6 +47,9 @@
       "name": "download_entitlements_from_asset_cms"
     },
     {
+      "name": "enable_coach_workout_text_suppression"
+    },
+    {
       "name": "experiment_hero_section",
       "value": true,
       "values": {
@@ -312,10 +315,6 @@
       "name": "game_1_110_high_density_just_watch"
     },
     {
-      "name": "game_1_110_prestige_badging",
-      "value": true
-    },
-    {
       "name": "game_1_110_prevent_auto_continue_when_background_pairing",
       "value": true
     },
@@ -360,9 +359,6 @@
       "value": true
     },
     {
-      "name": "game_1_114_load_routes_early"
-    },
-    {
       "name": "game_1_114_next_up_expandable_explanation",
       "value": true
     },
@@ -390,7 +386,8 @@
       "value": true
     },
     {
-      "name": "game_1_116_unlimited_znet_retry"
+      "name": "game_1_116_unlimited_znet_retry",
+      "value": true
     },
     {
       "name": "game_1_116_use_alternate_next_up_description",
@@ -438,7 +435,7 @@
       "values": {
         "fields": {
           "exclusions": {
-            "stringValue": ""
+            "stringValue": "A026E005-0A7D-4AB3-97FA-F1500F9FEB8B,A026E005"
           }
         }
       }
@@ -455,7 +452,8 @@
       "value": true
     },
     {
-      "name": "game_1_119_purge_all_devices"
+      "name": "game_1_119_purge_all_devices",
+      "value": true
     },
     {
       "name": "game_1_119_zero_media_selection",
@@ -463,6 +461,13 @@
     },
     {
       "name": "game_1_120_android_ui_callback_async_drain",
+      "value": true
+    },
+    {
+      "name": "game_1_120_ble_auth_notification"
+    },
+    {
+      "name": "game_1_120_device_error_events",
       "value": true
     },
     {
@@ -476,8 +481,27 @@
       "value": true
     },
     {
-      "name": "game_1_15_assert_disable_abort",
+      "name": "game_1_120_route_badge_drop_in_restart",
       "value": true
+    },
+    {
+      "name": "game_1_121_0_view_controller_lifecycle_fixes"
+    },
+    {
+      "name": "game_1_121_apply_active_shifting_schema",
+      "value": true
+    },
+    {
+      "name": "game_1_121_poll_profile_fetch_desktop"
+    },
+    {
+      "name": "game_1_121_registered_events_for_you"
+    },
+    {
+      "name": "game_1_121_see_rewards_button"
+    },
+    {
+      "name": "game_1_122_pairing_options"
     },
     {
       "name": "game_1_17_noesis_enabled",
@@ -565,19 +589,6 @@
           }
         }
       }
-    },
-    {
-      "name": "game_1_33_riders_nearby_watts",
-      "values": {
-        "fields": {
-          "slope": {
-            "numberValue": 0.04
-          }
-        }
-      }
-    },
-    {
-      "name": "game_1_39_event_settings"
     },
     {
       "name": "game_1_39_movement_recorder"
@@ -853,17 +864,6 @@
       "value": true
     },
     {
-      "name": "game_1_52_activity_break",
-      "value": true,
-      "values": {
-        "fields": {
-          "activityBreakIntervalSeconds": {
-            "varintValue": "30"
-          }
-        }
-      }
-    },
-    {
       "name": "game_1_53_0_workout_detail_screen_tooltips",
       "value": true
     },
@@ -915,10 +915,6 @@
           }
         }
       }
-    },
-    {
-      "name": "game_1_65_remove_curate_route_checkpoints",
-      "value": true
     },
     {
       "name": "game_1_66_autosteering_v5",
@@ -1046,27 +1042,12 @@
       "value": true
     },
     {
-      "name": "game_1_78_shifting_gearing_refactor",
-      "value": true
-    },
-    {
       "name": "game_1_78_zp_sh",
       "value": true
     },
     {
       "name": "game_1_79_category_enforcement_event_join",
       "value": true
-    },
-    {
-      "name": "game_1_79_trigger_change",
-      "value": true,
-      "values": {
-        "fields": {
-          "use_only_new_processing": {
-            "boolValue": false
-          }
-        }
-      }
     },
     {
       "name": "game_1_80_new_route_time_estimate",
@@ -1111,14 +1092,6 @@
       "value": true
     },
     {
-      "name": "game_1_84_badges_v2",
-      "value": true
-    },
-    {
-      "name": "game_1_84_zp_over_ip",
-      "value": true
-    },
-    {
       "name": "game_1_85_macos_network_privacy_workaround",
       "values": {
         "fields": {
@@ -1127,10 +1100,6 @@
           }
         }
       }
-    },
-    {
-      "name": "game_1_86_badges_v3",
-      "value": true
     },
     {
       "name": "game_1_86_fitness-service_goals",
@@ -1228,10 +1197,6 @@
     },
     {
       "name": "game_1_92_robo_pacer_custom_skin"
-    },
-    {
-      "name": "game_1_95_allow_zc_unpairing_devices_in_connecting_state",
-      "value": true
     },
     {
       "name": "game_1_95_post_recommended_activity_survey"
@@ -1489,10 +1454,6 @@
       "name": "game_activeloading"
     },
     {
-      "name": "game_aeroribbon",
-      "value": true
-    },
-    {
       "name": "game_alpe_du_zwift_prize_wheel_override",
       "value": true,
       "values": {
@@ -1565,11 +1526,15 @@
       "value": true
     },
     {
-      "name": "game_default_deco"
-    },
-    {
-      "name": "game_disable_cached_subgroup_protobuf",
-      "value": true
+      "name": "game_default_deco",
+      "value": true,
+      "values": {
+        "fields": {
+          "world11": {
+            "stringValue": "werideparis2026"
+          }
+        }
+      }
     },
     {
       "name": "game_disable_end_ride_delete_snapshot_fix"
@@ -1592,7 +1557,7 @@
             "stringValue": "dlc_asset"
           },
           "build_id": {
-            "stringValue": "164644"
+            "stringValue": "165287"
           },
           "canary_test": {
             "boolValue": true
@@ -1687,6 +1652,9 @@
       "value": true
     },
     {
+      "name": "game_loading_screen_for_return_to_homescreen"
+    },
+    {
       "name": "game_log_rssi"
     },
     {
@@ -1743,6 +1711,10 @@
           }
         }
       }
+    },
+    {
+      "name": "game_paddock_orientation_fix",
+      "value": true
     },
     {
       "name": "game_patch_noesis_loc"
@@ -1833,7 +1805,7 @@
       "values": {
         "fields": {
           "version": {
-            "stringValue": "1.120.0"
+            "stringValue": "1.121.0"
           }
         }
       }
@@ -1869,6 +1841,9 @@
           }
         }
       }
+    },
+    {
+      "name": "game_target_power_segment"
     },
     {
       "name": "game_tbs_2025_package"
@@ -2002,10 +1977,6 @@
           }
         }
       }
-    },
-    {
-      "name": "gfx_drawinstanced",
-      "value": true
     },
     {
       "name": "gfx_romsdalen"

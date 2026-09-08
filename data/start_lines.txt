@@ -7,7 +7,7 @@
   "947394567": {
     "name": "Crit City - Downtown Dolphin",
     "road": 0,
-    "time": 628605
+    "time": 642925
   },
   "-1419308404": {
     "name": "Crit City - The Bell Lap",
@@ -136,6 +136,16 @@
   },
   "1295302121": {
     "name": "Gravel Mountain - Red Rock Loop Arcade",
+    "road": 0,
+    "time": 655000
+  },
+  "-2021220203": {
+    "name": "Gravel Mountain - Red Rock Loop Arcade 3",
+    "road": 0,
+    "time": 655000
+  },
+  "434255158": {
+    "name": "Gravel Mountain - Red Rock Loop Arcade 4",
     "road": 0,
     "time": 655000
   },
@@ -1194,6 +1204,11 @@
     "road": 81,
     "time": 32347
   },
+  "-980779374": {
+    "name": "Watopia - Going Coastal Run",
+    "road": 81,
+    "time": 30600
+  },
   "1993374659": {
     "name": "Watopia - Handful Of Gravel",
     "road": 35,
@@ -1206,6 +1221,11 @@
   },
   "-333494250": {
     "name": "Watopia - Hilltop Hustle",
+    "road": 149,
+    "time": 587992
+  },
+  "2031173606": {
+    "name": "Watopia - Hilltop Hustle Run",
     "road": 149,
     "time": 587992
   },
@@ -1263,6 +1283,16 @@
     "name": "Watopia - Jungle Circuit Reverse",
     "road": 35,
     "time": 546732
+  },
+  "-1558536483": {
+    "name": "Watopia - Jungle Circuit Reverse Run",
+    "road": 35,
+    "time": 546788
+  },
+  "777967780": {
+    "name": "Watopia - Jungle Circuit Run",
+    "road": 35,
+    "time": 546788
   },
   "-285836430": {
     "name": "Watopia - Jurassic Coast",
@@ -1414,6 +1444,11 @@
     "road": 36,
     "time": 762184
   },
+  "1140989693": {
+    "name": "Watopia - Road to Sky Run",
+    "road": 36,
+    "time": 713379
+  },
   "772562418": {
     "name": "Watopia - Run Path Reverse",
     "road": 47,
@@ -1427,7 +1462,12 @@
   "-840629157": {
     "name": "Watopia - Seaside Sprint",
     "road": 0,
-    "time": 592082
+    "time": 609298
+  },
+  "-875179317": {
+    "name": "Watopia - Seaside Sprint Run",
+    "road": 0,
+    "time": 609298
   },
   "-1465337769": {
     "name": "Watopia - Serpentine 8",
@@ -1673,6 +1713,11 @@
     "name": "Watopia - Whole Lotta Lava",
     "road": 23,
     "time": 791288
+  },
+  "1468250868": {
+    "name": "Watopia - Whole Lotta Lava Run",
+    "road": 23,
+    "time": 791178
   },
   "1724903700": {
     "name": "Watopia - ZG25 Queen",
