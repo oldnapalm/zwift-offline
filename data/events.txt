@@ -9,7 +9,7 @@
   {
     "name": "Crit City - Downtown Dolphin",
     "route": 947394567,
-    "distance": 2032.6,
+    "distance": 2059.2,
     "course": 12,
     "sport": 0
   },
@@ -44,6 +44,20 @@
   {
     "name": "Gravel Mountain - Red Rock Loop Arcade",
     "route": 1295302121,
+    "distance": 5396.4,
+    "course": 16,
+    "sport": 0
+  },
+  {
+    "name": "Gravel Mountain - Red Rock Loop Arcade 3",
+    "route": 2273747093,
+    "distance": 5396.4,
+    "course": 16,
+    "sport": 0
+  },
+  {
+    "name": "Gravel Mountain - Red Rock Loop Arcade 4",
+    "route": 434255158,
     "distance": 5396.4,
     "course": 16,
     "sport": 0
@@ -133,37 +147,9 @@
     "sport": 0
   },
   {
-    "name": "Makuri Islands - Mech Isle Mayhem",
-    "route": 2919739330,
-    "distance": 20365.9,
-    "course": 13,
-    "sport": 0
-  },
-  {
     "name": "Makuri Islands - Neokyo Crit Course",
     "route": 1127056801,
     "distance": 4660.0,
-    "course": 13,
-    "sport": 0
-  },
-  {
-    "name": "Makuri Islands - Twilight Crit",
-    "route": 362278484,
-    "distance": 5742.5,
-    "course": 13,
-    "sport": 0
-  },
-  {
-    "name": "Makuri Islands - Urumaze",
-    "route": 4092230492,
-    "distance": 26781.0,
-    "course": 13,
-    "sport": 0
-  },
-  {
-    "name": "Makuri Islands - WhatYumeziWe'reLost?",
-    "route": 811898717,
-    "distance": 17541.5,
     "course": 13,
     "sport": 0
   },
@@ -334,13 +320,6 @@
     "distance": 5168.0,
     "course": 6,
     "sport": 1
-  },
-  {
-    "name": "Watopia - Seaside Sprint",
-    "route": 3454338139,
-    "distance": 9253.1,
-    "course": 6,
-    "sport": 0
   },
   {
     "name": "Watopia - Spiral Summit",
