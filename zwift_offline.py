@@ -2633,7 +2633,7 @@ def strava_upload(player_id, activity):
         logger.warning("Strava upload failed. No internet? %s" % repr(exc))
 
 
-def free_strava_upload(player_id, activity, photos):
+def free_strava_upload(player_id, activity):
     file = '%s/%s/strava4_session.txt' % (STORAGE_DIR, player_id)
     if not os.path.exists(file):
         logger.info("strava4_session.txt missing, skip free Strava activity update")
@@ -2645,7 +2645,7 @@ def free_strava_upload(player_id, activity, photos):
         logger.warning("Failed to read %s. Skipping free Strava upload attempt: %s" % (file, repr(exc)))
         return
     try:
-        free_strava.upload_activity(cookie, activity.fit_filename, activity.fit, activity.name, photos=photos)
+        free_strava.upload_activity(cookie, activity.fit_filename, activity.fit, activity.name)
     except Exception as exc:
         logger.warning("Free Strava upload failed. No internet? %s" % repr(exc))
 
@@ -2789,9 +2789,9 @@ def save_ghost(player_id, name):
         with open(f, 'wb') as fd:
             fd.write(ghosts.rec.SerializeToString())
 
-def activity_uploads(player_id, activity, photos):
+def activity_uploads(player_id, activity):
     if strava_upload_method(player_id) == 'free':
-        free_strava_upload(player_id, activity, photos)
+        free_strava_upload(player_id, activity)
     else:
         strava_upload(player_id, activity)
     garmin_upload(player_id, activity)
@@ -2839,10 +2839,8 @@ def api_profiles_activities_id(player_id, activity_id):
     # For using with upload_activity
     with open('%s/%s/last_activity.bin' % (STORAGE_DIR, player_id), 'wb') as f:
         f.write(stream)
-    photos = [path for img in ActivityImage.query.filter_by(player_id=player_id, activity_id=activity.id)
-              if os.path.exists(path := '%s/%s/images/%s.jpg' % (STORAGE_DIR, player_id, img.id))]
     # Upload in separate thread to avoid client freezing if it takes longer than expected
-    upload = threading.Thread(target=activity_uploads, args=(player_id, activity, photos))
+    upload = threading.Thread(target=activity_uploads, args=(player_id, activity))
     upload.start()
     return response, 200
 
