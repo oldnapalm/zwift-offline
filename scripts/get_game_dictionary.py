@@ -23,12 +23,12 @@ frontwheels = {}
 for x in root.findall("./BIKEFRONTWHEELS/BIKEFRONTWHEEL"):
     signature = int(x.get('signature'))
     if not signature in frontwheel_exceptions:
-        frontwheels[x.get('name')] = signature
+        frontwheels[x.get('imageName')] = signature
 rearwheels = {}
 for x in root.findall("./BIKEREARWHEELS/BIKEREARWHEEL"):
     signature = int(x.get('signature'))
     if not signature in rearwheel_exceptions:
-        rearwheels[x.get('name')] = signature
+        rearwheels[x.get('imageName')] = signature
 gd['wheels'] = [(rearwheels[x], frontwheels[x]) for x in rearwheels if x in frontwheels]
 gd['runshirts'] = [int(x.get('signature')) for x in root.findall("./RUNSHIRTS/RUNSHIRT")]
 gd['runshorts'] = [int(x.get('signature')) for x in root.findall("./RUNSHORTS/RUNSHORT")]

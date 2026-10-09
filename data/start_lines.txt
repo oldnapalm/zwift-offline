@@ -70,7 +70,7 @@
     "time": 305075
   },
   "941280950": {
-    "name": "France - Peaky Pav\u00c3\u00a9",
+    "name": "France - Peaky Pav\u00e9",
     "road": 26,
     "time": 296827
   },
@@ -825,12 +825,12 @@
     "time": 914800
   },
   "-930393161": {
-    "name": "Paris - Champs-\u00c3\u2030lys\u00c3\u00a9es",
+    "name": "Paris - Champs-\u00c9lys\u00e9es",
     "road": 0,
     "time": 485823
   },
   "-1476431023": {
-    "name": "Paris - Champs-\u00c3\u2030lys\u00c3\u00a9es Run",
+    "name": "Paris - Champs-\u00c9lys\u00e9es Run",
     "road": 0,
     "time": 485875
   },
@@ -840,7 +840,7 @@
     "time": 972899
   },
   "-1153887298": {
-    "name": "Paris - Cr\u00c3\u00aape Escape",
+    "name": "Paris - Cr\u00eape Escape",
     "road": 0,
     "time": 485874
   },
@@ -893,6 +893,11 @@
     "name": "Paris - Rues in Rythme",
     "road": 0,
     "time": 36419
+  },
+  "764392844": {
+    "name": "Paris - Sacr\u00e9 Trois!",
+    "road": 0,
+    "time": 485874
   },
   "-2098947784": {
     "name": "Richmond - 2015 Worlds Course",
@@ -955,7 +960,7 @@
     "time": 365803
   },
   "-1982084789": {
-    "name": "Scotland - D\u00c3\u00b9n Dash",
+    "name": "Scotland - D\u00f9n Dash",
     "road": 2,
     "time": 905030
   },
@@ -1029,10 +1034,25 @@
     "road": 0,
     "time": 405170
   },
+  "1156630474": {
+    "name": "Watopia - 3 Lightning Laps",
+    "road": 200,
+    "time": 471000
+  },
   "-475871543": {
     "name": "Watopia - 5K Loop",
     "road": 47,
     "time": 339578
+  },
+  "1507816665": {
+    "name": "Watopia - 6 Lightning Laps",
+    "road": 200,
+    "time": 471000
+  },
+  "2125439468": {
+    "name": "Watopia - 9 Lightning Laps",
+    "road": 200,
+    "time": 471000
   },
   "1115260805": {
     "name": "Watopia - Accelerate to Elevate",
@@ -1048,6 +1068,11 @@
     "name": "Watopia - Beach Island Loop Run",
     "road": 0,
     "time": 987941
+  },
+  "-171369918": {
+    "name": "Watopia - Better Lap Than Never",
+    "road": 133,
+    "time": 954477
   },
   "1917017591": {
     "name": "Watopia - Big Flat 8",
@@ -1073,6 +1098,21 @@
     "name": "Watopia - Bigger Loop",
     "road": 0,
     "time": 12824
+  },
+  "-1028308664": {
+    "name": "Watopia - Caldera Coaster",
+    "road": 196,
+    "time": 813000
+  },
+  "966890401": {
+    "name": "Watopia - California Dreamin'",
+    "road": 196,
+    "time": 813000
+  },
+  "2076673816": {
+    "name": "Watopia - California Roll",
+    "road": 201,
+    "time": 555000
   },
   "-1699508175": {
     "name": "Watopia - Canopies and Coastlines",
@@ -1118,6 +1158,11 @@
     "name": "Watopia - Coastal Crown Loop",
     "road": 133,
     "time": 248735
+  },
+  "-830520562": {
+    "name": "Watopia - Crit Cross",
+    "road": 196,
+    "time": 813000
   },
   "-1406146301": {
     "name": "Watopia - Danger Noodle",
@@ -1189,6 +1234,11 @@
     "road": 0,
     "time": 12380
   },
+  "1353706660": {
+    "name": "Watopia - Four Foalsmen",
+    "road": 81,
+    "time": 30600
+  },
   "-1416786329": {
     "name": "Watopia - Four Horsemen",
     "road": 0,
@@ -1249,6 +1299,11 @@
     "road": 0,
     "time": 987894
   },
+  "-2139402742": {
+    "name": "Watopia - Island Interlude",
+    "road": 1,
+    "time": 90000
+  },
   "-721879714": {
     "name": "Watopia - Italian Villas Circuit",
     "road": 0,
@@ -1299,10 +1354,30 @@
     "road": 81,
     "time": 935502
   },
+  "-1006943703": {
+    "name": "Watopia - Laps, Camera, Traction",
+    "road": 201,
+    "time": 555000
+  },
+  "1998473375": {
+    "name": "Watopia - Lava Legs",
+    "road": 196,
+    "time": 813000
+  },
   "-430109420": {
     "name": "Watopia - Legends and Lava",
     "road": 81,
     "time": 938107
+  },
+  "568123398": {
+    "name": "Watopia - Lightning Lap",
+    "road": 200,
+    "time": 471000
+  },
+  "-77504991": {
+    "name": "Watopia - Lightning Lap Run",
+    "road": 200,
+    "time": 471000
   },
   "243949867": {
     "name": "Watopia - Loop de Loop",
@@ -1318,6 +1393,11 @@
     "name": "Watopia - Loopin Lava",
     "road": 192,
     "time": 897647
+  },
+  "-58373776": {
+    "name": "Watopia - Loopipelago",
+    "road": 196,
+    "time": 813000
   },
   "-1282378735": {
     "name": "Watopia - May Field",
@@ -1343,6 +1423,16 @@
     "name": "Watopia - Mayan San Remo",
     "road": 36,
     "time": 706851
+  },
+  "-988575499": {
+    "name": "Watopia - Miles of Isles",
+    "road": 200,
+    "time": 471000
+  },
+  "121619062": {
+    "name": "Watopia - Molten Momentum",
+    "road": 196,
+    "time": 813000
   },
   "-1075893284": {
     "name": "Watopia - Mountain 8",
@@ -1389,10 +1479,20 @@
     "road": 150,
     "time": 70000
   },
+  "458819181": {
+    "name": "Watopia - One Ride to Rule Them All",
+    "road": 200,
+    "time": 471000
+  },
   "-1546309583": {
     "name": "Watopia - Out And Back Again",
     "road": 81,
     "time": 30600
+  },
+  "1396603072": {
+    "name": "Watopia - Pacific Pursuit",
+    "road": 0,
+    "time": 987894
   },
   "-736277954": {
     "name": "Watopia - Peak Performance",
@@ -1429,6 +1529,11 @@
     "road": 135,
     "time": 975720
   },
+  "1805916570": {
+    "name": "Watopia - Ring Leader",
+    "road": 201,
+    "time": 555000
+  },
   "-1327354915": {
     "name": "Watopia - Road To Ruins Reverse",
     "road": 0,
@@ -1458,6 +1563,16 @@
     "name": "Watopia - Sand And Sequoias",
     "road": 81,
     "time": 30600
+  },
+  "-249285615": {
+    "name": "Watopia - Seafoam Circuit",
+    "road": 201,
+    "time": 555000
+  },
+  "-645723060": {
+    "name": "Watopia - Seafoam Scamper",
+    "road": 201,
+    "time": 555000
   },
   "-840629157": {
     "name": "Watopia - Seaside Sprint",
@@ -1578,6 +1693,11 @@
     "name": "Watopia - The Uber Pretzel",
     "road": 0,
     "time": 14181
+  },
+  "162354031": {
+    "name": "Watopia - The Watopia 150!",
+    "road": 200,
+    "time": 471000
   },
   "-1667361048": {
     "name": "Watopia - Three Little Sisters",
@@ -1703,6 +1823,11 @@
     "name": "Watopia - Watopia's Waistband",
     "road": 81,
     "time": 30600
+  },
+  "1374321160": {
+    "name": "Watopia - Watt Goes Up Must Come Down",
+    "road": 196,
+    "time": 813000
   },
   "979250573": {
     "name": "Watopia - Watts of the Wild",

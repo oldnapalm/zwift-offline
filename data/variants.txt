@@ -38,10 +38,16 @@
             "boolValue": true
           },
           "distancePaddingM": {
-            "varintValue": "200"
+            "varintValue": "300"
+          },
+          "minCadenceRPM": {
+            "varintValue": "500"
           }
         }
       }
+    },
+    {
+      "name": "bishop_banner"
     },
     {
       "name": "download_entitlements_from_asset_cms"
@@ -66,20 +72,21 @@
           "show_beta_tag": {
             "boolValue": false
           },
-          "small_hero_card": {
-            "boolValue": true
-          },
           "swap_foryou_challenges_rows": {
             "boolValue": false
           },
-          "tune_activity_icon": {
+          "theater_card": {
             "boolValue": true
+          },
+          "tune_activity_icon": {
+            "boolValue": false
           }
         }
       }
     },
     {
-      "name": "fitness_widget"
+      "name": "fitness_widget",
+      "value": true
     },
     {
       "name": "free_trial_update",
@@ -167,14 +174,6 @@
       }
     },
     {
-      "name": "game_1_100_structured_event_pace_partner_joined_left",
-      "value": true
-    },
-    {
-      "name": "game_1_101_robopacer_timer_ui",
-      "value": true
-    },
-    {
       "name": "game_1_101_zp_request_full_response"
     },
     {
@@ -209,7 +208,18 @@
       "value": true
     },
     {
-      "name": "game_1_105_background_pairing"
+      "name": "game_1_105_background_pairing",
+      "value": true,
+      "values": {
+        "fields": {
+          "not_all_devices_found_display_delay_ms": {
+            "varintValue": "30000"
+          },
+          "skip_pre_ride_gate": {
+            "boolValue": true
+          }
+        }
+      }
     },
     {
       "name": "game_1_105_route_elevation_graph",
@@ -323,9 +333,6 @@
       "value": true
     },
     {
-      "name": "game_1_110_trial_banner"
-    },
-    {
       "name": "game_1_111_personalize_experience"
     },
     {
@@ -370,6 +377,9 @@
       "value": true
     },
     {
+      "name": "game_1_115_wattlock"
+    },
+    {
       "name": "game_1_116_deprecate_wahoo_ant_burst_mode",
       "value": true
     },
@@ -397,7 +407,24 @@
       "name": "game_1_117_bishop_progress_report"
     },
     {
-      "name": "game_1_117_feature_gate_entitlements"
+      "name": "game_1_117_feature_gate_entitlements",
+      "value": true,
+      "values": {
+        "fields": {
+          "backed_by_jwt": {
+            "boolValue": true
+          },
+          "drop_in_world": {
+            "boolValue": true
+          },
+          "streaks": {
+            "boolValue": true
+          },
+          "treadmill_incline": {
+            "boolValue": true
+          }
+        }
+      }
     },
     {
       "name": "game_1_117_quest_card_countdown_ribbon",
@@ -412,10 +439,6 @@
     },
     {
       "name": "game_1_117_steering_constraints_render_fix",
-      "value": true
-    },
-    {
-      "name": "game_1_118_poll_user_profile_fetch",
       "value": true
     },
     {
@@ -445,7 +468,21 @@
       "value": true
     },
     {
-      "name": "game_1_119_membership_view"
+      "name": "game_1_119_membership_view",
+      "value": true,
+      "values": {
+        "fields": {
+          "is_change_plan_action_enabled": {
+            "boolValue": false
+          },
+          "is_resume_action_enabled": {
+            "boolValue": true
+          },
+          "is_subscribe_action_enabled": {
+            "boolValue": false
+          }
+        }
+      }
     },
     {
       "name": "game_1_119_noesis_touch_drag",
@@ -457,6 +494,14 @@
     },
     {
       "name": "game_1_119_zero_media_selection",
+      "value": true
+    },
+    {
+      "name": "game_1_120_android_anr_sentry_improvements",
+      "value": true
+    },
+    {
+      "name": "game_1_120_android_sentry_tracing_cached_class",
       "value": true
     },
     {
@@ -485,23 +530,57 @@
       "value": true
     },
     {
-      "name": "game_1_121_0_view_controller_lifecycle_fixes"
+      "name": "game_1_121_0_view_controller_lifecycle_fixes",
+      "value": true
     },
     {
       "name": "game_1_121_apply_active_shifting_schema",
       "value": true
     },
     {
-      "name": "game_1_121_poll_profile_fetch_desktop"
+      "name": "game_1_121_poll_profile_fetch_desktop",
+      "value": true
     },
     {
-      "name": "game_1_121_registered_events_for_you"
+      "name": "game_1_121_registered_events_for_you",
+      "value": true
     },
     {
       "name": "game_1_121_see_rewards_button"
     },
     {
-      "name": "game_1_122_pairing_options"
+      "name": "game_1_122_hide_route_difficulty_rating"
+    },
+    {
+      "name": "game_1_122_pairing_options",
+      "value": true
+    },
+    {
+      "name": "game_1_122_remove_devices_on_logout",
+      "value": true
+    },
+    {
+      "name": "game_1_122_workout_route_duration",
+      "value": true
+    },
+    {
+      "name": "game_1_123_clear_devices_on_shutdown",
+      "value": true
+    },
+    {
+      "name": "game_1_123_fit_file_hardening",
+      "value": true
+    },
+    {
+      "name": "game_1_123_prevent_unwanted_ble_reconnect_on_apple",
+      "value": true
+    },
+    {
+      "name": "game_1_123_zsignal_fix",
+      "value": true
+    },
+    {
+      "name": "game_1_124_any_point_route_completion"
     },
     {
       "name": "game_1_17_noesis_enabled",
@@ -671,8 +750,7 @@
       }
     },
     {
-      "name": "game_1_42_teleport_deprecate_pedalassist_state",
-      "value": true
+      "name": "game_1_42_teleport_deprecate_pedalassist_state"
     },
     {
       "name": "game_1_43_3_ble_dll_v2",
@@ -712,10 +790,6 @@
           }
         }
       }
-    },
-    {
-      "name": "game_1_44_1dc_fix_2",
-      "value": true
     },
     {
       "name": "game_1_45_climb_portal_achievements",
@@ -911,7 +985,7 @@
       "values": {
         "fields": {
           "hero_carousel_id": {
-            "stringValue": "home_page_hero_carousel_119"
+            "stringValue": "home_page_hero_carousel_121"
           }
         }
       }
@@ -1000,7 +1074,7 @@
       "values": {
         "fields": {
           "challenge_carousel_id": {
-            "stringValue": "prod_home_challenge_carousel_1_119"
+            "stringValue": "prod_home_challenge_carousel"
           }
         }
       }
@@ -1023,26 +1097,18 @@
       "name": "game_1_76_dpr"
     },
     {
-      "name": "game_1_76_max_clubs_to_display",
+      "name": "game_1_77_prevent_teleport_to_player_type",
       "value": true,
       "values": {
         "fields": {
-          "max_clubs_to_display": {
-            "varintValue": "50"
+          "restricted_teleports": {
+            "stringValue": "{\"Player Type\":[{\"NORMAL,PRO_CYCLIST,ZWIFT_STAFF,AMBASSADOR,VERIFIED,ZED,ZAC,PRO_TRIATHLETE,PRO_RUNNER,PACER_BOT,BROADCASTER,COMMUNITY_LEADER,RIDE_LEADER\":[{\"World ID\":1,\"Road IDs\":[193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229]}]}]}"
           }
         }
       }
     },
     {
-      "name": "game_1_77_prevent_teleport_to_player_type",
-      "value": true
-    },
-    {
       "name": "game_1_77_ttt_team_car_shows_znl_when_fanviewing",
-      "value": true
-    },
-    {
-      "name": "game_1_78_zp_sh",
       "value": true
     },
     {
@@ -1090,16 +1156,6 @@
     {
       "name": "game_1_83_training_partner_post_workout_survey",
       "value": true
-    },
-    {
-      "name": "game_1_85_macos_network_privacy_workaround",
-      "values": {
-        "fields": {
-          "codes": {
-            "stringValue": "65"
-          }
-        }
-      }
     },
     {
       "name": "game_1_86_fitness-service_goals",
@@ -1170,10 +1226,6 @@
       "value": true
     },
     {
-      "name": "game_1_91_zp_auth",
-      "value": true
-    },
-    {
       "name": "game_1_92_climb_portal_xp_exploit",
       "value": true,
       "values": {
@@ -1196,7 +1248,21 @@
       }
     },
     {
-      "name": "game_1_92_robo_pacer_custom_skin"
+      "name": "game_1_92_robo_pacer_custom_skin",
+      "value": true,
+      "values": {
+        "fields": {
+          "BodyTextureName": {
+            "stringValue": "RPBody_TourOfWatopia2026_DM.tga"
+          },
+          "GlowTextureName": {
+            "stringValue": "Glow_C.tga"
+          },
+          "LimbsTextureName": {
+            "stringValue": "RPLimbs_TourOfWatopia2026_DM.tga"
+          }
+        }
+      }
     },
     {
       "name": "game_1_95_post_recommended_activity_survey"
@@ -1329,10 +1395,6 @@
       }
     },
     {
-      "name": "game_RideReportRideXp",
-      "value": true
-    },
-    {
       "name": "game_VideoCapture",
       "values": {
         "fields": {
@@ -1360,91 +1422,28 @@
       "value": true,
       "values": {
         "fields": {
-          "CanyonAeroad_Alpecin_2026": {
-            "boolValue": true
-          },
-          "CanyonAeroad_CS_2026": {
-            "boolValue": true
-          },
           "CanyonAeroad_Green_2026": {
             "boolValue": true
           },
-          "cadex_max50_front_wheel": {
+          "QuintanaRooVPri_2026": {
             "boolValue": true
           },
-          "cadex_max50_rear_wheel": {
+          "black_threezero_inc2026_front_wheel": {
             "boolValue": true
           },
-          "canyon_speedmax_cfr_2026": {
+          "black_threezero_inc2026_rear_wheel": {
             "boolValue": true
           },
-          "cervelo_s5_2026": {
+          "cannondale_superslice_2026": {
             "boolValue": true
           },
-          "dt_swiss_arc_wheels": {
+          "factor_hanzo_2026": {
             "boolValue": true
           },
-          "giant_propel_2026": {
+          "giant_trinity_advanced_sl_2026": {
             "boolValue": true
           },
-          "miche_deva_rd62_front_wheel": {
-            "boolValue": true
-          },
-          "miche_deva_rd62_rear_wheel": {
-            "boolValue": true
-          },
-          "reserve_34_front_wheel": {
-            "boolValue": true
-          },
-          "reserve_34_rear_wheel": {
-            "boolValue": true
-          },
-          "reserve_57_front_wheel": {
-            "boolValue": true
-          },
-          "reserve_57_rear_wheel": {
-            "boolValue": true
-          },
-          "roval_rapide_clx_front_wheel": {
-            "boolValue": true
-          },
-          "roval_rapide_clx_rear_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c362026_front_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c362026_rear_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c502026_front_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c502026_rear_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c602026_front_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c602026_rear_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c992026_front_wheel": {
-            "boolValue": true
-          },
-          "shimano_duraace_c992026_rear_wheel": {
-            "boolValue": true
-          },
-          "specialized_tarmac_sl9_2026": {
-            "boolValue": true
-          },
-          "supersixevo_2026": {
-            "boolValue": true
-          },
-          "wilier_filante_2026": {
-            "boolValue": true
-          },
-          "wilier_psg_2026": {
+          "liv_avow_advanced_sl_2026": {
             "boolValue": true
           }
         }
@@ -1480,27 +1479,21 @@
       "values": {
         "fields": {
           "branch_prefix": {
-            "stringValue": "art/"
+            "stringValue": "art/,data/fall-26-early-access-build"
           }
         }
       }
+    },
+    {
+      "name": "game_average_power_fix",
+      "value": true
     },
     {
       "name": "game_barun"
     },
     {
-      "name": "game_button_rideon_bomb_prompt_delay"
-    },
-    {
       "name": "game_camera_spill",
-      "value": true,
-      "values": {
-        "fields": {
-          "fence_paris": {
-            "stringValue": "release;SRAPRXRLCO"
-          }
-        }
-      }
+      "value": true
     },
     {
       "name": "game_check_for_video_updates"
@@ -1530,8 +1523,8 @@
       "value": true,
       "values": {
         "fields": {
-          "world11": {
-            "stringValue": "werideparis2026"
+          "world1": {
+            "stringValue": "tourofwatopia2026"
           }
         }
       }
@@ -1557,7 +1550,7 @@
             "stringValue": "dlc_asset"
           },
           "build_id": {
-            "stringValue": "165287"
+            "stringValue": "166686"
           },
           "canary_test": {
             "boolValue": true
@@ -1618,6 +1611,9 @@
       "name": "game_force_show_all_graphics_settings"
     },
     {
+      "name": "game_freetype_legacy_fonts"
+    },
+    {
       "name": "game_groupevent_join_fix"
     },
     {
@@ -1625,7 +1621,23 @@
     },
     {
       "name": "game_instrumental_rock_bass",
-      "value": true
+      "value": true,
+      "values": {
+        "fields": {
+          "end": {
+            "varintValue": "4102470000"
+          },
+          "ints": {
+            "stringValue": "1920002,1,3,1 1920002,1,0,0 1920003,1,1,0 1920003,1,3,0 350010,1,3,0 350010,1,0,0 350011,1,1,0 350011,1,3,1"
+          },
+          "routes": {
+            "stringValue": "1156630474,121619062,1353706660,1374321160,1396603072,1507816665,162354031,1805916570,1998473375,2076673816,2125439468,2155564554,3266658632,3288023593,3306391797,3464446734,3649244236,4045681681,4123597378,4217462305,4236593520,458819181,568123398,966890401"
+          },
+          "start": {
+            "varintValue": "1788847200"
+          }
+        }
+      }
     },
     {
       "name": "game_lauterbrunnen"
@@ -1658,35 +1670,7 @@
       "name": "game_log_rssi"
     },
     {
-      "name": "game_mochi",
-      "values": {
-        "fields": {
-          "config": {
-            "stringValue": "{}"
-          },
-          "entitlement_mode": {
-            "stringValue": "core"
-          },
-          "manifest": {
-            "stringValue": "{}"
-          },
-          "recommended_video": {
-            "stringValue": "lochlong_1440"
-          },
-          "server_address": {
-            "stringValue": "https://rlcpmryhtpcsqfgd.dev-gs.zwift.com"
-          },
-          "showDLCTab": {
-            "boolValue": false
-          },
-          "tidy_streaming": {
-            "boolValue": true
-          },
-          "use_parallel_download": {
-            "boolValue": true
-          }
-        }
-      }
+      "name": "game_mochi"
     },
     {
       "name": "game_mochi_performance"
@@ -1717,7 +1701,8 @@
       "value": true
     },
     {
-      "name": "game_patch_noesis_loc"
+      "name": "game_patch_noesis_loc",
+      "value": true
     },
     {
       "name": "game_prize_wheel_schedule",
@@ -1805,7 +1790,7 @@
       "values": {
         "fields": {
           "version": {
-            "stringValue": "1.121.0"
+            "stringValue": "1.123.0"
           }
         }
       }
@@ -1843,6 +1828,9 @@
       }
     },
     {
+      "name": "game_support_zp_sensor"
+    },
+    {
       "name": "game_target_power_segment"
     },
     {
@@ -1866,58 +1854,58 @@
             "numberValue": 2.0
           },
           "tow_end": {
-            "varintValue": "1763366340"
+            "varintValue": "1794855600"
           },
           "tow_start": {
-            "varintValue": "1759507200"
+            "varintValue": "1791212400"
           },
           "zwift_Automation_AB_route": {
-            "varintValue": "686828068"
+            "varintValue": "0"
           },
           "zwift_tow_cycling_route_01": {
             "varintValue": "979250573"
           },
           "zwift_tow_cycling_route_02": {
-            "varintValue": "2312882507"
+            "varintValue": "604330868"
           },
           "zwift_tow_cycling_route_03": {
-            "varintValue": "3636436865"
+            "varintValue": "2474227587"
           },
           "zwift_tow_cycling_route_04": {
-            "varintValue": "65777922"
+            "varintValue": "2748657713"
           },
           "zwift_tow_cycling_route_05": {
-            "varintValue": "2836167073"
+            "varintValue": "1675611962"
           },
           "zwift_tow_cycling_route_06": {
-            "varintValue": "4227232797"
+            "varintValue": "3366225080"
           },
           "zwift_tow_cycling_route_07": {
-            "varintValue": "3051823795"
+            "varintValue": "3023359358"
           },
           "zwift_tow_cycling_route_08": {
-            "varintValue": "3314406972"
+            "varintValue": "2768300955"
           },
           "zwift_tow_cycling_route_09": {
-            "varintValue": "3079921742"
+            "varintValue": "2661047295"
           },
           "zwift_tow_cycling_route_10": {
-            "varintValue": "1552189318"
+            "varintValue": "1396603072"
           },
           "zwift_tow_cycling_route_11": {
-            "varintValue": "0"
+            "varintValue": "2076673816"
           },
           "zwift_tow_cycling_route_12": {
-            "varintValue": "0"
+            "varintValue": "966890401"
           },
           "zwift_tow_cycling_route_13": {
-            "varintValue": "0"
+            "varintValue": "458819181"
           },
           "zwift_tow_cycling_route_14": {
-            "varintValue": "0"
+            "varintValue": "121619062"
           },
           "zwift_tow_cycling_route_15": {
-            "varintValue": "0"
+            "varintValue": "3464446734"
           }
         }
       }
@@ -1960,9 +1948,6 @@
     },
     {
       "name": "game_would_block_manager"
-    },
-    {
-      "name": "game_zop"
     },
     {
       "name": "garage_item_manager",
@@ -2014,7 +1999,8 @@
       }
     },
     {
-      "name": "load_optimzied_player_models"
+      "name": "load_optimzied_player_models",
+      "value": true
     },
     {
       "name": "log_ble_packets"

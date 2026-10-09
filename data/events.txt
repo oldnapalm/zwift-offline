@@ -217,6 +217,13 @@
     "sport": 0
   },
   {
+    "name": "Paris - Sacr\u00e9 Trois!",
+    "route": 764392844,
+    "distance": 27355.7,
+    "course": 15,
+    "sport": 0
+  },
+  {
     "name": "Richmond - Cobbled Climbs Reverse",
     "route": 4194352271,
     "distance": 9277.1,
@@ -235,6 +242,13 @@
     "route": 1258415487,
     "distance": 4208.3,
     "course": 17,
+    "sport": 0
+  },
+  {
+    "name": "Watopia - Better Lap Than Never",
+    "route": 4123597378,
+    "distance": 50413.4,
+    "course": 6,
     "sport": 0
   },
   {
