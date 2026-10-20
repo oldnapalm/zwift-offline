@@ -1,6 +1,3 @@
-> [!WARNING]
-> This fork contains changes to run as a system service on Oracle Cloud. Refer to [this wiki page](https://github.com/oldnapalm/zwift-offline/wiki/Creating-a-server-on-Oracle-Cloud-Free-Tier) for more details.
-
 # zoffline
 
 zoffline enables the use of [Zwift](http://zwift.com) offline by acting as a partial implementation of a Zwift server. By default zoffline is only for a single player. See [Step 6: Enable Multiplayer](#step-6-optional-enable-multiplayer) for how to enable support for multiple users/profiles.
@@ -11,86 +8,11 @@ Additionally, zoffline's launcher allows selecting a specific map to ride on wit
 
 ## Install
 
-Setting up zoffline requires two primary steps. First, zoffline must be installed and run on a system before running Zwift (either on the system running Zwift or on another locally networked system).  Second, Zwift must be configured to use zoffline instead of the official Zwift server.
+Setting up zoffline requires two primary steps. First, zoffline must be installed and run on a system before running Zwift. Second, Zwift must be configured to use zoffline instead of the official Zwift server.
 
 ### Step 1: Install zoffline
-There are four ways with which to install and run zoffline depending on your platform:
 
-<details><summary>Simplest (Windows only)</summary>
-To install zoffline on Windows:
-
-* Download the latest zoffline release from https://github.com/zoffline/zwift-offline/releases/latest
-* If you are not running zoffline on the same PC that Zwift is running: create a ``server-ip.txt`` file in the ``storage`` directory containing the IP address of the PC running zoffline.
-* Run the downloaded zoffline.exe
-  * Once run, zoffline will create a ``storage`` directory in the same folder it's in to store your Zwift progress.
-* Start Zwift with zoffline.exe running (__after completing step 2__ or running __configure_client__ script from https://github.com/oldnapalm/zoffline-helper/releases/latest)
-  * It takes zoffline a few seconds to start. Wait until text appears in the command prompt before opening Zwift.
-* When done with Zwift, press Ctrl+C in the command line to close zoffline.
-</details>
-
-<details><summary>Linux, Windows, or macOS (from source)</summary>
-To install zoffline on Linux, Windows, or macOS:
-
-* Install Python 3 (https://www.python.org/downloads/) if not already installed
-  * On Windows, installing Python via the Microsoft Store is highly recommend! If using a Python installer, ensure that in the first Python installer screen "Add Python 3.x to PATH" is checked.
-* Clone or download this repo
-* Install dependencies
-  * e.g., on Linux/Mac: ``pip3 install -r requirements.txt``
-  * e.g., on Windows in command prompt: ``pip install -r requirements.txt``
-    * You may need to use ``C:\Users\<username>\AppData\Local\Programs\Python\Python<version>\Scripts\pip.exe`` instead of just ``pip``
-* If you are not running zoffline on the same PC that Zwift is running: create a ``server-ip.txt`` file in the ``storage`` directory containing the IP address of the PC running zoffline.
-* Run standalone.py before starting Zwift
-  * e.g., on Linux/Mac: ``sudo ./standalone.py``
-    * sudo is needed because we're binding to the privileged ports 80 and 443.
-    * If Python 3 is not your system default run ``sudo python3 standalone.py``
-  * e.g., on Windows in command prompt: ``python standalone.py``
-    * You may need to use ``C:\Users\<username>\AppData\Local\Programs\Python\Python<version>\python.exe`` instead of just ``python``
-* Start Zwift with standalone.py running (__after completing step 2__)
-* Note: When upgrading zoffline, be sure to retain the ``storage`` directory. It contains your Zwift progress state.
-
-zoffline can be installed on the same machine as Zwift or another local machine.
-</details>
-
-
-<details><summary>Using Docker</summary>
- 
-* Install Docker
-* Create the docker container with:<br>
-  ``docker create --name zwift-offline -p 443:443 -p 80:80 -p 3024:3024/udp -p 3025:3025 -p 53:53/udp -v </path/to/host/storage>:/usr/src/app/zwift-offline/storage -e TZ=<timezone> ghcr.io/oldnapalm/zoffline``
-  * You can optionally exclude ``-v </path/to/host/storage>:/usr/src/app/zwift-offline/storage`` if you don't care if your Zwift progress state is retained across zoffline updates (unlikely).
-  * The path you pass to ``-v`` will likely need to be world readable and writable.
-  * A list of valid ``<timezone>`` values (e.g. America/New_York) can be found [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
-  * Adding ``--restart unless-stopped`` will make zoffline start on boot if you have Docker v1.9.0 or greater.
-* If you are not running zoffline on the same PC that Zwift is running: create a ``server-ip.txt`` file in the ``</path/to/host/storage>`` directory containing the IP address of the PC running zoffline.
-* Start zoffline with:
-  ``docker start zwift-offline``
-</details>
-
-
-<details><summary>Using Docker Compose</summary>
-
-* Install docker-compose
-* Either use the ``docker-compose.yml`` file in this repo which will build from the Dockerfile, or use this example compose file:
-  ``` yaml
-  services:
-      zoffline:
-          image: ghcr.io/oldnapalm/zoffline:latest
-          container_name: zoffline
-          environment:
-              - TZ=Europe/London
-          volumes:
-              - ./storage/:/usr/src/app/zwift-offline/storage
-          ports:
-              - 80:80
-              - 443:443
-              - 3024:3024/udp
-              - 3025:3025
-          restart: unless-stopped
-  ```
-  * In the ``volumes`` tag replace ``./storage/`` before the ``:`` with the directory path you want to use as your local zoffline data store.
-* If you are not running zoffline on the same PC that Zwift is running: create a ``server-ip.txt`` file in the ``storage`` directory containing the IP address of the PC running zoffline.
-* Start zoffline with: ``docker-compose up -d``
-</details>
+See [Creating a server on Oracle Cloud Free Tier](https://github.com/oldnapalm/zwift-offline/wiki/Creating-a-server-on-Oracle-Cloud-Free-Tier).
 
 ### Step 2: Configure Zwift client to use zoffline
 
@@ -237,7 +159,7 @@ To obtain your current profile:
   * __Browser session cookie (free):__
     * Log in to https://www.strava.com in a browser, open the developer tools (F12), navigate to "Application - Storage - Cookies" and copy the ``_strava4_session`` cookie value.
     * Paste and save the value on the "Settings - Strava" page of the launcher.
-* Automatic screenshots uploading works with the session cookie method, but not with the API. See [#28](https://github.com/zoffline/zwift-offline/issues/28) for details.
+* Screenshots uploading is disabled in this fork.
 
 </details>
 
@@ -260,15 +182,7 @@ To obtain your current profile:
 
 <details><summary>Android (non-rooted device)</summary>
 
-* Install apk-mitm (https://github.com/shroudedcode/apk-mitm)
-* [OPTIONAL] To enable the fitness widget, install Apktool (https://github.com/iBotPeaches/Apktool)
-  * Run ``apktool d zca.apk -o zca_decoded``
-  * Edit ``zca_decoded/res/xml/remote_config_defaults.xml`` changing ``react_native_fitness_view`` to ``true``
-  * Run ``apktool b zca_decoded -o zca.apk``
-* Copy the file [ssl/cert-zwift-com.pem](https://github.com/zoffline/zwift-offline/raw/master/ssl/cert-zwift-com.pem) in this repo and the Zwift Companion apk (e.g. ``zca.apk``) to a known location
-* Open Command Prompt, cd to that location and run
-  * ``apk-mitm --certificate cert-zwift-com.pem zca.apk``
-* Copy ``zca-patched.apk`` to your phone and install it
+* Download and install the patched apk from [here](https://github.com/fatsbrown/zoffline-companion/releases/latest) (or [patch it yourself](https://github.com/fatsbrown/zoffline-companion#patch-it-yourself))
 * Download and install ``app-Github-release.apk`` from [here](https://github.com/x-falcon/Virtual-Hosts/releases/latest)
 * Create a ``hosts.txt`` file to use with the app (you could use a text editor app or create it online with an online tool such as [this](https://passwordsgenerator.net/text-editor/)). The file must look like this (replace ``<zoffline ip>`` with the IP address of the machine running zoffline):
   ```
